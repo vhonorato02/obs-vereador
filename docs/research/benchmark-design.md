@@ -2,6 +2,8 @@
 
 *Pesquisa de produto cívico para o Observatório Social do Brasil – Pindamonhangaba · versão de 24/10/2026*
 
+> **Atualização (24/10/2026, decisões do dono):** o escopo é só Pindamonhangaba (Observatório e Câmara); outros observatórios citados aqui são apenas referência de benchmark. O portal acompanha todos os vereadores e linka para os documentos oficiais; não é um clone do site da Câmara. IA paga está fora. A arquitetura de informação final está na seção 10 de `fase-1-relatorio.md`.
+
 ---
 
 ## 0. Resumo executivo: as 8 lições mais importantes

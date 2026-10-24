@@ -20,7 +20,15 @@
 | Teste de alcance a partir do GitHub Actions | feito (workflow `source-probe`, resultado abaixo) |
 | Benchmark, design, stack, free tiers | feito (`docs/research/benchmark-design.md`, `docs/research/stack-free-tiers.md`) |
 | Relatório da Fase 1 | **entregue** — `docs/research/fase-1-relatorio.md` |
-| Aguardando | respostas do dono às 13 decisões da seção 20 do relatório |
+| Decisões do dono (24/10) | aplicadas no relatório, `CLAUDE.md` e aqui (ver abaixo) |
+| Aguardando | respostas do dono às 9 decisões em aberto da seção 20 do relatório |
+
+## Decisões do dono do projeto (24/10/2026)
+
+1. **Só Pindamonhangaba** — Observatório Social do Brasil – Pindamonhangaba e Câmara de Pindamonhangaba. (O OS Campos Gerais aparecia só como exemplo de benchmark; foi removido do plano.)
+2. **Só free tier** — sem cartão, sem domínio comprado (`*.vercel.app`), sem IA paga. O Cloudflare R2 saiu (pede cartão): snapshots e dados abertos vão para um repositório público de dados no GitHub; backups `pg_dump` criptografados em repositório privado.
+3. **Atualização semanal** — coleta toda quarta de manhã (após a sessão de terça), TCE-SP mensal, reconciliação mensal.
+4. **Portal para acompanhar todos os vereadores, não um clone do site da Câmara** — ementa, metadados, votos, contexto e link para o documento oficial; sem texto integral. Menu: Vereadores · Votações · Como funciona + Buscar (relatório, seção 10).
 
 ## Descobertas que mudam a arquitetura (leia antes de tudo)
 
@@ -54,7 +62,7 @@ Commits usam a identidade **local** do repositório: `José Victor Honorato <337
 
 ## Próximos passos
 
-1. Dono do projeto lê o relatório e responde às decisões da seção 20.
+1. Dono do projeto lê o relatório e responde às 9 decisões em aberto da seção 20.
 2. OSB envia ofício à Câmara (liberação do coletor no anti-robô; tramitação/votações na API; uso das fotos).
 3. Criar conta de cidadão no site da Câmara e obter o token da API (só o dono/OSB pode fazer); guardar como secret.
 4. Criar a branch `main` (com autorização) para abrir o PR desta pesquisa.

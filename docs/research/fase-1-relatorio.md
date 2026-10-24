@@ -7,6 +7,12 @@ Documentos de apoio (mesma pasta): `power-bi.md`, `camara-site.md`, `benchmark-d
 
 > Legenda de confiança usada no texto: **[verificado]** testado nesta pesquisa · **[fonte]** lido em documentação oficial · **[hipótese]** precisa ser confirmado (lista na seção 18.1).
 
+> **Decisões do dono do projeto (24/10/2026), já incorporadas a este plano:**
+> 1. **Escopo só de Pindamonhangaba** — Observatório Social do Brasil – Pindamonhangaba e Câmara Municipal de Pindamonhangaba. Nada de projeto genérico para outras cidades.
+> 2. **Só free tier.** Nenhum serviço pago, nenhum domínio comprado por enquanto (o site usa o subdomínio gratuito da Vercel).
+> 3. **Atualização semanal** é suficiente.
+> 4. **Não é um clone do site da Câmara.** É um portal para acompanhar **todos os vereadores**: o centro é a pessoa e o que ela fez; o detalhe completo de cada documento fica no site oficial, com link.
+
 ---
 
 ## 1. Sumário executivo
@@ -22,10 +28,10 @@ Documentos de apoio (mesma pasta): `power-bi.md`, `camara-site.md`, `benchmark-d
 
 **O que recomendo**
 
-- **Produto:** site editorial, rápido e indexável, com 4 áreas (Vereadores, Proposições, Sessões, A Câmara) e busca. Todo número abre a lista que o compõe; todo registro mostra fonte e data de coleta; nada de ranking.
-- **Dados:** API oficial primeiro; HTML só onde a API não cobre e só com anuência da Câmara; PDF apenas para atas (presença). Snapshots brutos guardados, parsers testados com fixtures reais, validação de plausibilidade que distingue "nada novo" de "coletor quebrado".
-- **Stack:** Next.js 16.4 + TypeScript strict na Vercel; Postgres no Neon (São Paulo) com Drizzle e Zod; coletores em TypeScript como CLI rodando no GitHub Actions; snapshots no Cloudflare R2; Better Auth no admin; Sentry + Healthchecks.io + UptimeRobot. Custo inicial **US$ 0–20/mês** + domínio R$ 40/ano.
-- **Sequência:** começar pelo que já é acessível (API + transparência), lançar com proposições, normas, pautas e despesas, e acrescentar tramitação/votações/presenças quando a Câmara liberar o coletor.
+- **Produto:** portal editorial, rápido e indexável, **centrado nos 11 vereadores**: o que cada um apresentou, como votou, presença, diárias e emendas impositivas. Todo número abre a lista que o compõe; cada item da lista leva ao documento oficial no site da Câmara. Nada de ranking, nada de espelhar o site da Câmara.
+- **Dados:** API oficial primeiro; HTML só onde a API não cobre e só com anuência da Câmara; PDF apenas para atas (presença). Coleta **semanal**, snapshots guardados, parsers testados com fixtures reais, validação de plausibilidade que distingue "nada novo" de "coletor quebrado".
+- **Stack (100% gratuita):** Next.js 16.4 + TypeScript strict na Vercel Hobby; Postgres no Neon Free (São Paulo) com Drizzle e Zod; coletores em TypeScript como CLI rodando semanalmente no GitHub Actions; snapshots e dados abertos num repositório público de dados no GitHub; Better Auth no admin; Sentry, Healthchecks.io e UptimeRobot nos planos gratuitos. **Custo: R$ 0**, sem cartão de crédito.
+- **Sequência:** começar pelo que já é acessível (API + transparência), lançar com proposições por vereador, normas, diárias e emendas, e acrescentar votações/presenças quando a Câmara liberar o coletor.
 
 **Autocrítica honesta:** mapeei a estrutura do site com cerca de 20 requisições manuais; **não validei o conteúdo real da API** (precisa do token) nem a cobertura histórica. As seções de modelo de dados e ingestão estão desenhadas sobre o que vi, com as incertezas marcadas.
 
@@ -65,33 +71,33 @@ Hipótese importante para a reconciliação: a soma de projetos de lei por verea
 
 | Dado | Fonte | Disponibilidade | Confiabilidade | Forma de coleta | Frequência | Observações |
 |---|---|---|---|---|---|---|
-| Vereadores em exercício (nome parlamentar, partido, foto) | Câmara — API `vereadores`; página `/camara/membros/exercicio/0` | Alta | Alta | API (token) | Diária | API só traz quem está em exercício |
+| Vereadores em exercício (nome parlamentar, partido, foto) | Câmara — API `vereadores`; página `/camara/membros/exercicio/0` | Alta | Alta | API (token) | Semanal | API só traz quem está em exercício |
 | Vereadores de legislaturas anteriores | Câmara — seletor de autoria (~200 nomes com ID interno); TSE | Média | Média | HTML + TSE + revisão manual | Uma vez + por evento | Há duplicatas (mesma pessoa, IDs diferentes) |
 | Nome civil, nome de urna | TSE (candidaturas); protocolo das matérias | Alta | Alta | CSV TSE | Por eleição | Apelidos variam ("Norbertinho" / "Norberto Moraes") |
-| Partido atual e histórico | Câmara (atual); TSE (na eleição) | Alta / Média | Alta / Média | API + TSE | Diária / por eleição | Troca de partido no meio do mandato não vem estruturada [hipótese] |
+| Partido atual e histórico | Câmara (atual); TSE (na eleição) | Alta / Média | Alta / Média | API + TSE | Semanal / por eleição | Troca de partido no meio do mandato não vem estruturada [hipótese] |
 | Votos na eleição, nº de mandatos | TSE dados abertos | Alta | Alta | CSV | Por eleição | O Power BI tinha isso sem fonte |
 | Subsídio | Lei/resolução que fixa subsídio; SIAPE (estrutura remuneratória) | Alta | Alta | API legislação + SIAPE | Anual | Hoje é valor digitado |
 | Legislaturas, mandatos, suplências, licenças | Atos da Mesa, pautas, notícias | Média | Média | HTML/PDF + revisão no admin | Por evento | Pouco estruturado; evento raro, revisão manual é aceitável |
 | Mesa Diretora | Atos, notícias | Média | Alta | HTML + admin | Bienal | — |
 | Comissões permanentes (7) e composição | `/pautas/comissao`, Atos (ex.: Ato 01/2025) | Média | Alta | HTML + admin | Anual | Pautas de comissão são coletáveis |
-| Proposições (requerimentos, indicações, moções, emendas, vetos, PL, PLC, PDL, PR, atos…) | Câmara — API `proposicoes` por tipo | Alta | Alta | API (token), paginada | 2–3 h em dias úteis + reconciliação semanal | ~8–10 mil/ano |
-| Ementa e texto integral | API [hipótese] + página HTML + PDF assinado | Alta | Alta | API / HTML / PDF | Junto com a proposição | Texto de honrarias traz dados pessoais de terceiros (LGPD) |
+| Proposições (requerimentos, indicações, moções, emendas, vetos, PL, PLC, PDL, PR, atos…) | Câmara — API `proposicoes` por tipo | Alta | Alta | API (token), paginada | Semanal + reconciliação mensal | ~8–10 mil/ano |
+| Ementa e texto integral | API [hipótese] + página HTML + PDF assinado | Alta | Alta | API / HTML / PDF | Junto com a proposição | Não republicar o texto integral: ementa + link oficial (honrarias trazem dados pessoais de terceiros) |
 | Autoria e coautoria | Página da matéria; assinatura | Alta | Média | API/HTML | Junto | Forma de registrar coautoria a confirmar [hipótese] |
-| **Proposições por bairro** | API `bairros` + `proposicoes&bairro=` | Alta | Alta (classificação da própria Câmara) | API | Diária | Atende "bairro Araretama" sem IA |
+| **Proposições por bairro** | API `bairros` + `proposicoes&bairro=` | Alta | Alta (classificação da própria Câmara) | API | Semanal | Atende "bairro Araretama" sem IA |
 | Tramitação (linha do tempo) | `/ajax/tramitacao/{tipo}/{id}` | Alta | Alta | HTML (fragmento) | Para matérias alteradas | **Recebe desafio anti-robô no GitHub Actions** |
-| **Votações nominais** (turno, quórum, resultado, voto de cada vereador) | Fragmento de tramitação + PDF `votacao_print_pdf` | Alta | Alta | HTML + PDF para conferência | Após cada sessão | **Mesmo bloqueio**; o presidente não aparece entre os votantes |
-| Pautas das sessões | API `pautas`; `/pautas/...`; PDF | Alta | Alta | API | Diária | Inclui solenes, especiais, audiências |
-| Sessões (calendário, tipo, número) | `/calendario`, pautas | Alta | Alta | API/HTML | Diária | Ordinárias às terças, 17h |
+| **Votações nominais** (turno, quórum, resultado, voto de cada vereador) | Fragmento de tramitação + PDF `votacao_print_pdf` | Alta | Alta | HTML + PDF para conferência | Semanal (após a sessão de terça) | **Mesmo bloqueio**; o presidente não aparece entre os votantes |
+| Pautas das sessões | API `pautas`; `/pautas/...`; PDF | Alta | Alta | API | Semanal | Inclui solenes, especiais, audiências |
+| Sessões (calendário, tipo, número) | `/calendario`, pautas | Alta | Alta | API/HTML | Semanal | Ordinárias às terças, 17h |
 | Presença por sessão | Atas em PDF (chamada nominal) | Média | Média | Extração de PDF + validação | Semanal | Ausência justificada: fonte a confirmar [hipótese] |
-| Normas resultantes (leis, resoluções, decretos legislativos) | API `legislacoes` | Alta | Alta | API (token) | Diária | Liga projeto → norma |
+| Normas resultantes (leis, resoluções, decretos legislativos) | API `legislacoes` | Alta | Alta | API (token) | Semanal | Liga projeto → norma |
 | Sanção, veto, promulgação | Tramitação + tipo "Vetos" + Jornal Oficial do município | Média | Alta | HTML/API | Por evento | Diário oficial: verificar Querido Diário [hipótese] |
-| Despesas da Câmara (empenho, liquidação, pagamento, fornecedor) | SIAPE GOV (entidade 2); TCE-SP | Alta | Alta | APIs JSON | Diária (SIAPE) / mensal (TCE) | Duas fontes permitem reconciliação |
-| **Diárias e passagens** | SIAPE `/execucao/diarias` | Alta | Alta | API | Diária | Atribuível a vereador quando ele é o beneficiário |
+| Despesas da Câmara (empenho, liquidação, pagamento, fornecedor) | SIAPE GOV (entidade 2); TCE-SP | Alta | Alta | APIs JSON | Semanal (SIAPE) / mensal (TCE) | Duas fontes permitem reconciliação |
+| **Diárias e passagens** | SIAPE `/execucao/diarias` | Alta | Alta | API | Semanal | Atribuível a vereador quando ele é o beneficiário |
 | **Emendas impositivas** (por vereador) | SIAPE `/emendas_parlamentares/*`; app DSI | Alta | Alta | API | Mensal | Muito relevante e ausente do Power BI |
 | Contratos, licitações, atas de registro de preço | SIAPE + `/imprensa/transparencia/*` da Câmara | Alta | Alta | API/HTML | Semanal | Nível Câmara, não vereador |
 | Servidores, cargos, lotação (inclui assessores) | SIAPE RH | Alta | Alta | API | Mensal | Sensível; ver decisão LGPD (seção 20) |
 | Repasse de duodécimos | SIAPE receitas | Alta | Alta | API | Mensal | Contexto do orçamento da Câmara |
-| Notícias oficiais | RSS `/jsonweb/web-rss.php` | Alta | Alta (versão oficial) | RSS | 2–3 h | Contexto, não fato primário |
+| Notícias oficiais | RSS `/jsonweb/web-rss.php` | Alta | Alta (versão oficial) | RSS | Semanal | Contexto, não fato primário |
 | Vídeos das sessões | Canal da TV Câmara no YouTube | Alta | Alta | Link manual/feed | Semanal | Prova visual da sessão |
 | Histórico 2021–2024 | Power BI antigo (xlsx no Drive); SoftCam (há matérias desde 2009) | Média | Média | Importação + reconciliação | Uma vez | Profundidade histórica do SoftCam a confirmar [hipótese] |
 | Baseline 2025–ago/2026 | Power BI público (extraído) | Alta | Baixa (manual) | Importado | Uma vez | Marcado como histórico até reconciliar |
@@ -104,7 +110,7 @@ Não encontrei: despesas de gabinete por vereador (cota/verba indenizatória), r
 
 | Novo | Por que importa |
 |---|---|
-| Cada proposição individual, com ementa, texto, PDF oficial e link | Acaba com o "número mágico" |
+| Cada proposição individual, com ementa e link para o documento oficial | Acaba com o "número mágico" sem copiar o site da Câmara |
 | Linha do tempo da tramitação | Mostra o que aconteceu com o pedido, não só que ele existiu |
 | Resultado (aprovado, rejeitado, arquivado, em tramitação) | Distingue apresentar de aprovar |
 | **Votações nominais e voto de cada vereador** | O dado de maior valor cívico; viabiliza "votações divididas" |
@@ -118,7 +124,7 @@ Não encontrei: despesas de gabinete por vereador (cota/verba indenizatória), r
 | Natureza da proposição (rotineira/honorífica × substantiva) | Evita ler volume como mérito |
 | Temas | Navegação por assunto ("saúde", "transporte") |
 | Histórico de legislaturas | Comparar com o próprio passado, sem ranking |
-| Exportações abertas (CSV/JSON) | Reuso por jornalistas, pesquisadores e outros observatórios |
+| Exportações abertas (CSV/JSON) | Reuso por jornalistas, pesquisadores e cidadãos |
 
 ---
 
@@ -127,7 +133,7 @@ Não encontrei: despesas de gabinete por vereador (cota/verba indenizatória), r
 ### 5.1 Câmara — API SoftCam (fonte principal)
 - **Acesso:** token de cidadão (cadastro em `/cidadao`), guardado como secret. Requisição GET simples.
 - **Coleta:** listas paginadas por tipo (`proposicoes&tipo=…&pagina=N`), por bairro, `legislacoes`, `pautas`, `vereadores`, `bairros`, `publicacoes`.
-- **Incremental:** percorrer páginas mais recentes até encontrar itens já conhecidos e inalterados (hash do registro); reconciliação completa semanal.
+- **Incremental e semanal:** uma execução por semana (quarta de manhã, depois da sessão ordinária de terça) percorre as páginas mais recentes até encontrar itens já conhecidos e inalterados (hash do registro); reconciliação completa mensal.
 - **Armadilhas conhecidas:** sem token, a API devolve **200 vazio** — tratar como erro de autenticação. Validar com Zod; campo inesperado vira alerta, não crash silencioso.
 - **Primeira tarefa da implementação:** com o token, catalogar os campos reais de cada serviço (hipóteses H1–H4).
 
@@ -147,7 +153,7 @@ Não encontrei: despesas de gabinete por vereador (cota/verba indenizatória), r
 ### 5.4 Portal da Transparência (SIAPE GOV)
 - API JSON pública (`/portal-transparencia/api/...`), com a Câmara como `id_entidade=2`. Endpoints mapeados: empenhos, liquidações, pagamentos, diárias, adiantamentos, suprimento de fundos, duodécimos, contratos, atas, licitações, RH e emendas parlamentares.
 - Parâmetros exatos a capturar com o navegador (Playwright) na implementação — a primeira tentativa direta devolveu erro 500, provavelmente por parâmetro faltando.
-- Diária para despesas; mensal para RH e emendas.
+- Semanal para despesas; mensal para RH e emendas.
 
 ### 5.5 TCE-SP
 - `GET /api/json/despesas/pindamonhangaba/{ano}/{mes}` sem autenticação; filtrar `orgao = CÂMARA MUNICIPAL DE PINDAMONHANGABA`. ~260 eventos/mês.
@@ -187,9 +193,9 @@ flowchart LR
   end
 
   subgraph ING["Ingestão (GitHub Actions)"]
-    S["Agendador<br/>schedule + disparo manual"]
+    S["Agendador<br/>semanal + disparo manual"]
     F["Cliente HTTP educado<br/>limite de taxa, retry, detector de bloqueio"]
-    R[("Snapshots brutos<br/>R2, por sha256")]
+    R[("Snapshots<br/>repositório público de dados")]
     P["Parsers versionados<br/>fixtures reais"]
     V["Validação Zod<br/>+ plausibilidade"]
     N["Normalização<br/>IDs canônicos, apelidos, vocabulário"]
@@ -200,7 +206,7 @@ flowchart LR
   M["Métricas derivadas<br/>views com versão do método"]
   W["Site público Next.js<br/>estático/ISR na Vercel"]
   ADM["Admin<br/>Better Auth"]
-  X["Exportações CSV/JSON<br/>R2"]
+  X["Dados abertos CSV/JSON<br/>repositório público de dados"]
   O["Observabilidade<br/>Sentry, Healthchecks, UptimeRobot"]
   Q["Fila de pendências<br/>no admin"]
 
@@ -220,7 +226,7 @@ flowchart LR
 | Componente | Responsabilidade | Decisão |
 |---|---|---|
 | Cliente HTTP | User-Agent honesto com contato, ≥ 1 s entre requisições por host, timeout, retry com backoff e jitter (só em erro de rede/5xx), detector de "Bot Verification" e de "200 vazio", lista de hosts permitidos (anti-SSRF) | Um único módulo; todos os coletores usam |
-| Snapshots | Guarda o bruto antes de qualquer parse; chave por sha256 do conteúdo; metadados no banco (URL, data, status, hash, tamanho, run) | Permite reprocessar quando o parser melhora, sem rebaixar a fonte |
+| Snapshots | Guarda o retorno da fonte antes de qualquer parse (JSON comprimido num repositório público de dados no GitHub; PDFs só por hash + URL oficial); metadados no banco (URL, data, status, hash, tamanho, execução) | Permite reprocessar quando o parser melhora, sem voltar à fonte; o histórico do git vira trilha pública de auditoria |
 | Parsers | Funções puras: bruto → objetos tipados. Versionados (`parser_version` no registro) | Testados com fixtures reais (golden files) |
 | Validação | Zod no formato; regras de plausibilidade no conjunto (volume vs. histórico, campos obrigatórios, datas no futuro, número/ano coerentes) | Falha de plausibilidade marca a execução como **suspeita**: não publica remoções, alerta |
 | Normalização | Identidade canônica de vereador (apelidos), vocabulário controlado de tipos/situações/eventos, slugs | Tabelas de referência editáveis no admin |
@@ -228,7 +234,7 @@ flowchart LR
 | Métricas | Views SQL com nome e versão do método (`metodo_v1`) | Todo número publicado sabe de qual consulta veio |
 | Site | Next.js com páginas estáticas/ISR; `cacheTag` por entidade; a ingestão chama um endpoint assinado que invalida só o que mudou | Zero JS no cliente onde não precisa |
 | Admin | Mesmo app, rota protegida, autorização verificada em cada Server Function | Sem SaaS de admin |
-| Exportações | Geradas pela ingestão, publicadas no R2 (egress grátis) | O banco não serve download em massa |
+| Exportações | Geradas pela ingestão e publicadas no repositório público de dados (download grátis pelo GitHub) | O banco não serve download em massa |
 
 ### 6.3 Melhorias sobre o fluxo sugerido no briefing
 - **Descoberta separada de detalhe:** primeiro "o que mudou?" (listas, feeds, pautas), depois "baixe os detalhes só disso". É o que torna a ingestão incremental e barata.
@@ -241,7 +247,7 @@ flowchart LR
 
 ## 7. Banco e modelo de dados
 
-Postgres, modelo relacional próximo do padrão **Open Civic Data/Popolo** (pessoa, órgão, filiação, proposição, ação, evento de votação), o que facilita reuso pela rede OSB.
+Postgres, modelo relacional próximo do padrão **Open Civic Data/Popolo** (pessoa, órgão, filiação, proposição, ação, evento de votação), um padrão aberto e documentado.
 
 ### 7.1 Entidades principais
 
@@ -295,118 +301,124 @@ JSON só onde faz sentido: payload bruto normalizado no snapshot e `diff` da aud
 
 ## 8. Stack
 
-Pesquisa completa, versões e fontes em `stack-free-tiers.md`.
+Pesquisa completa, versões e fontes em `stack-free-tiers.md`. Decisão do dono: **só free tier**. Tudo abaixo é gratuito e não exige cartão de crédito.
 
-### 8.1 Recomendada
+### 8.1 Recomendada (100% gratuita)
 | Camada | Escolha | Por quê |
 |---|---|---|
-| Web + admin | **Next.js 16.4**, App Router, Cache Components, `ensureStatic` nas rotas públicas | Páginas estáticas com invalidação por entidade quando a ingestão roda; SEO; admin no mesmo app |
+| Web + admin | **Next.js 16.4** na **Vercel Hobby**, App Router, Cache Components, `ensureStatic` nas rotas públicas | Páginas estáticas com invalidação por entidade quando a ingestão roda; SEO; admin no mesmo app |
+| Endereço | Subdomínio gratuito `*.vercel.app` (ex.: `acompanhe-seu-vereador.vercel.app`) | Sem compra de domínio por enquanto |
 | Linguagem | TypeScript strict | Um ecossistema só para coletor, banco e site |
 | Validação | **Zod 4** | Fronteiras (parsers, formulários, exportações) |
-| Banco | **Postgres no Neon**, região São Paulo | Melhor free tier para o volume, branch por PR, extensões `unaccent`/`pg_trgm` |
+| Banco | **Postgres no Neon Free**, região São Paulo | 1 GB e 100 CU-h/mês bastam para o volume; extensões `unaccent`/`pg_trgm`; branch por PR |
 | ORM | **Drizzle 0.45** (versão fixada) | SQL-first, migrations SQL legíveis e revisáveis |
 | Busca | Postgres FTS (`portuguese` + `unaccent`) + `pg_trgm` | Suficiente para dezenas de milhares de registros |
-| Coletores | CLI TypeScript (`fetch`/undici, cheerio, unpdf) | Portáveis: rodam no Actions, num VPS ou em função |
-| Agendamento | **GitHub Actions** (repo público, grátis) com `schedule` + `workflow_dispatch` | Simples; heartbeat no Healthchecks avisa se parar |
-| Snapshots e exportações | **Cloudflare R2** | 10 GB grátis, egress grátis, API S3 |
+| Coletores | CLI TypeScript (`fetch`/undici, cheerio, unpdf) | Portáveis: rodam no Actions ou em qualquer máquina |
+| Agendamento | **GitHub Actions** (repo público, grátis), `schedule` **semanal** + `workflow_dispatch` | Semanal basta; o atraso típico do `schedule` é irrelevante nessa cadência |
+| Snapshots e dados abertos | **Repositório público de dados no GitHub** (JSON comprimido por execução; PDFs só por hash + URL oficial) | Grátis e sem cartão; o histórico do git vira trilha pública de auditoria; downloads servidos pelo GitHub |
+| Backups do banco | `pg_dump` semanal **criptografado** em repositório **privado** no GitHub | Grátis; o dump tem dados do admin, por isso não vai para o repositório público |
 | Auth do admin | **Better Auth** (convite, TOTP ou passkey) | Dados no próprio banco; Auth.js entrou em manutenção |
-| Observabilidade | Sentry + Healthchecks.io + UptimeRobot + tabela de execuções | Gratuito e suficiente |
-| Testes | Vitest, Testcontainers (Postgres real), Playwright + axe-core | — |
+| Observabilidade | Sentry Developer + Healthchecks.io + UptimeRobot (planos grátis) + tabela de execuções | Suficiente e sem custo |
+| Testes | Vitest, Testcontainers (Postgres real), Playwright + axe-core | Tudo roda no GitHub Actions gratuito |
 
-**Ajuste que faço sobre a pesquisa de stack:** ela sugere um Worker do Cloudflare como relógio externo para evitar atrasos e a desativação do `schedule` após 60 dias sem atividade. Concordo com o risco, discordo da prioridade: **começar só com `schedule`** + alerta de heartbeat (se o workflow for desativado, o alerta chega e reativar é um clique). O relógio externo entra se o atraso medido incomodar. Complexidade precisa pagar aluguel.
+**Ajustes que faço sobre a pesquisa de stack:** (1) ela sugeria um relógio externo no Cloudflare para fugir dos atrasos do `schedule`; com coleta semanal isso não paga o aluguel. (2) Ela recomendava Cloudflare R2 para snapshots; o R2 pede cartão no cadastro, então troquei por um repositório de dados no GitHub. (3) A regra do GitHub que desativa workflows agendados após 60 dias sem atividade não deve nos atingir, porque o próprio coletor faz commit semanal no repositório de dados; mesmo assim, o heartbeat do Healthchecks avisa se a coleta parar.
 
-### 8.2 Alternativa conservadora
-Next.js na **Vercel Pro** + **Supabase Pro** (Postgres com backup diário, Storage, sem pausa) + coletores como funções agendadas no Vercel Cron. ~US$ 45/mês. Menos peças, mais garantias, mais custo e um pouco mais de amarração ao Supabase.
+### 8.2 Alternativa conservadora — fora do escopo
+Vercel Pro + Supabase Pro (~US$ 45/mês): menos peças, backups gerenciados. **Descartada pela decisão "só free tier".** Fica registrada para o caso de o projeto ganhar financiamento.
 
 ### 8.3 Alternativa independente de vendor
-Um VPS em São Paulo (ou Oracle Always Free) com Docker Compose: Next.js `standalone`, Postgres 18, Caddy; coletores via systemd timer; backups para B2/R2; Cloudflare na frente. ~€6–20/mês. **Vantagem extra neste caso: IP fixo brasileiro, fácil de a Câmara liberar.** Desvantagem: manutenção alta (patches, backups, restores) para um projeto de voluntários.
+VPS com Docker Compose (Next.js `standalone`, Postgres, Caddy, coletores via systemd timer). Os VPS são pagos, com uma exceção: **Oracle Cloud Always Free** (2 OCPU / 12 GB), que é gratuito mas pode recuperar instâncias ociosas e dá mais trabalho de manutenção (patches, backups, TLS). Vantagem real: IP fixo, fácil de a Câmara liberar. Fica como plano B se a Vercel Hobby deixar de servir.
 
 ### 8.4 Comparação
 | Critério | Recomendada | Conservadora | Independente |
 |---|---|---|---|
-| Custo inicial | US$ 0 (Hobby) ou 20 (Pro) | ~US$ 45 | ~€6–20 |
-| Custo com crescimento | ~US$ 25–40 | ~US$ 45–70 | ~€10–20 |
+| Cabe em "só free tier" | **Sim** | Não | Só com Oracle Always Free |
+| Custo | R$ 0 | ~US$ 45/mês | R$ 0 (Oracle) ou pago |
 | Manutenção | Baixa | Muito baixa | Alta |
 | Lock-in | Médio-baixo | Médio | Baixo |
-| IP fixo para liberação na Câmara | Não (Actions) | Não | **Sim** |
+| IP fixo para liberação na Câmara | Não (Actions) | Não | Sim |
 | Previews por PR | Sim | Sim | Não (montar) |
 
 ---
 
 ## 9. Estratégia free tier
 
-| Componente | Serviço / plano | Limite relevante | Uso estimado | Plano B |
+| Componente | Serviço / plano gratuito | Limite relevante | Uso estimado | Se estourar |
 |---|---|---|---|---|
-| Site + admin | Vercel Hobby | 100 GB de banda, 1 M requisições CDN, 4 h CPU ativa; **uso não comercial pessoal**; sem repo de organização; 1 seat | Site quase todo estático: folgado | Vercel Pro US$ 20 |
-| Banco | Neon Free | 1 GB, 100 CU-h, 5 GB egress; estourar = banco suspenso até o mês seguinte; histórico de 6 h | < 300 MB/ano; ~25 CU-h com autoscaling limitado | Neon Launch (sem mínimo) |
-| Coleta | GitHub Actions (repo público) | grátis; `schedule` mínimo 5 min, atrasos; desativa após 60 dias sem atividade | ~10–30 min/dia | Relógio externo (Cloudflare Worker) ou VPS |
-| Snapshots/exportações | Cloudflare R2 | 10 GB, egress grátis; **exige cartão** | < 1 GB/ano | Backblaze B2 |
-| Backups | `pg_dump` noturno → R2 | — | MBs | — |
-| Erros | Sentry Developer | 1 usuário, 5 mil erros, 1 cron monitor | baixo | Patrocínio open source do Sentry |
-| Heartbeat | Healthchecks.io | 20 checks | ~8 | plano grátis para nonprofit/open source |
-| Uptime + status | UptimeRobot | 50 monitores, 5 min | ~5 | Better Stack |
-| Domínio | Registro.br | R$ 40/ano | 1–2 domínios | — |
+| Site + admin | Vercel Hobby | 100 GB de banda, 1 M requisições CDN, 4 h de CPU ativa/mês; uso **pessoal e não comercial**; 1 desenvolvedor; repositório pessoal (não de organização) | Site quase todo estático: folgado | Recurso bloqueado até o mês seguinte → plano B (Oracle Always Free) |
+| Banco | Neon Free | 1 GB, 100 CU-h, 5 GB de egress/mês; se estourar, o banco fica suspenso até o mês seguinte; histórico de 6 h | < 300 MB/ano; < 20 CU-h/mês com coleta semanal e autoscaling limitado | Cache agressivo; exportações fora do banco; alerta de uso |
+| Coleta | GitHub Actions (repo público) | Grátis; jobs de até 6 h | ~10–20 min por semana | — |
+| Snapshots e dados abertos | Repositório público no GitHub | Recomendado < 1 GB; arquivo < 100 MB | Poucos MB por ano (JSON comprimido) | Podar snapshots antigos mantendo os normalizados |
+| Backups | Repositório privado no GitHub | Idem | Dezenas de MB/ano | Reter só os últimos N |
+| Erros | Sentry Developer | 1 usuário, 5 mil erros/mês | Baixo | Pedir patrocínio open source do Sentry (grátis) |
+| Heartbeat | Healthchecks.io | 20 checks | ~5 | — |
+| Uptime + página de status | UptimeRobot | 50 monitores, 5 min | ~3 | — |
+| Endereço | Subdomínio `*.vercel.app` | — | — | Domínio próprio só se houver decisão futura |
 
-**Armadilhas que já evitei no desenho:** cron horário na Vercel Hobby (não existe), snapshots no Vercel Blob (estoura 2 mil uploads/mês), Supabase Free (pausa e não faz backup), Prisma Postgres (cobra por operação), Railway (incidente de segurança em 21/10/2026).
+**Armadilhas que o desenho evita:** cron horário na Vercel Hobby (não existe e não precisamos), Vercel Blob (2 mil uploads/mês), Cloudflare R2 (exige cartão), Supabase Free (pausa e não faz backup), Prisma Postgres (cobra por operação), Railway (incidente de segurança em 21/10/2026), IA paga.
+
+**Ponto de atenção honesto:** os termos da Vercel Hobby falam em uso "pessoal e não comercial". Um portal mantido por voluntário, sem anúncios nem venda, tende a se encaixar; se algum dia houver pagamento a quem desenvolve, deixa de se encaixar. Registrado como risco (seção 18).
 
 ---
 
 ## 10. Produto
 
-### 10.1 Arquitetura de informação
-Menu principal: **Vereadores · Proposições · Sessões · A Câmara** + **Buscar**. Utilitário: **Sobre os dados**. Rodapé: Metodologia · Dados abertos · Correções · Sobre · Contato · Reportar erro · "Mantido pelo OSB Pindamonhangaba. Este não é o site oficial da Câmara."
+### 10.1 O que o portal é (e o que não é)
+- **É:** um portal para acompanhar **todos os vereadores de Pindamonhangaba**, um a um: o que apresentaram, como votaram, quando estiveram presentes, que diárias receberam e para onde indicaram emendas impositivas — com cada número levando à lista que o compõe e cada item levando ao documento oficial.
+- **Não é:** um espelho do site da Câmara. Não republica textos integrais, notícias, pautas completas, licitações ou a estrutura institucional. Quando o cidadão quer o documento, o portal manda para o site oficial.
 
-Itens do briefing que **não** viram menu, e por quê:
-- **Votações:** dentro de Sessões (com URL própria `/votacoes`); vira menu se houver volume.
-- **Temas:** filtro e páginas `/temas/{slug}` quando a classificação for validada.
-- **Comparar:** visão "lado a lado" dentro de Vereadores, em ordem alfabética, mesmo período, com denominadores — nunca ranking.
-- **Explorar dados:** as listas filtráveis são o explorador; downloads em `/dados`. Recriar um BI seria recriar o problema.
+### 10.2 Arquitetura de informação
+Menu principal: **Vereadores · Votações · Como funciona** + **Buscar**. Utilitário: **Sobre os dados**. Rodapé: Metodologia · Dados abertos · Correções · Sobre · Reportar erro · "Mantido pelo Observatório Social do Brasil – Pindamonhangaba. Este não é o site oficial da Câmara."
 
-### 10.2 Mapa do site
+Itens do briefing e onde ficaram:
+- **Vereadores:** centro do produto.
+- **Proposições:** não são uma seção própria; aparecem como lista filtrável a partir de cada vereador e da busca (`/proposicoes?autor=…`), com página mínima por proposição.
+- **Votações:** seção própria porque responde "como cada um votou"; inclui o recorte "votações divididas".
+- **Sessões e Câmara:** sem seção espelhada; entram como contexto (data da sessão na votação, presença no perfil) e numa página curta "Como funciona" com o glossário.
+- **Temas, Comparar:** filtros e a visão "lado a lado" dentro de Vereadores (ordem alfabética, mesmo período, denominadores — nunca ranking).
+- **Explorar dados:** as listas filtráveis são o explorador; downloads em `/dados`.
+
+### 10.3 Mapa do site
 ```
-/                                  Início
-/vereadores                        11 atuais; anteriores por filtro de legislatura
-/vereadores/{slug}                 Perfil (abas: proposições · votos · presenças · despesas · sobre os dados)
-/vereadores/lado-a-lado            Tabela neutra
-/proposicoes                       Lista + busca + filtros (tipo, autoria, situação, período, bairro, tema, natureza)
-/proposicoes/{tipo}/{ano}/{numero} Proposição
-/sessoes                           Calendário e lista
-/sessoes/{aaaa-mm-dd}-{tipo}       Sessão: pauta, presenças, votações, vídeo
+/                                  Início: os 11 vereadores + o que mudou na semana
+/vereadores/{slug}                 Perfil (abas: proposições · votos · presença · diárias e emendas · sobre os dados)
+/vereadores/lado-a-lado            Tabela neutra, ordem alfabética
+/proposicoes                       Lista filtrável (destino dos números clicáveis e da busca)
+/proposicoes/{tipo}/{ano}/{numero} Página mínima: ementa, autores, situação, votos, link oficial
 /votacoes                          Votações nominais (?divididas=1)
-/camara                            Como funciona, Mesa, comissões, composição
-/glossario/{termo}                 Um termo por URL
+/como-funciona                     Câmara em 2 minutos + glossário (/glossario/{termo})
 /dados                             Downloads, dicionário, calendário de coleta, status das fontes
-/metodologia/{topico}              Presença, votações, natureza, temas, limites
+/metodologia/{topico}              Presença, votações, natureza das proposições, limites
 /correcoes                         Histórico público de correções
-/sobre                             OSB, princípios editoriais, contato
+/sobre                             Observatório Social do Brasil – Pindamonhangaba, princípios, contato
 ```
 
-### 10.3 Páginas-chave
-- **Início:** o que aconteceu na última sessão e o que vem na próxima; os 11 vereadores (ordem alfabética); "desde a última sessão: N proposições novas, M substantivas"; votações divididas recentes; busca; explicador "como funciona a Câmara em 2 minutos"; selo "dados até dd/mm hh:mm".
-- **Vereador:** foto com crédito, nome parlamentar e civil, partido (com histórico), mandatos, cargos, contato oficial; "Em resumo" com 3–4 frases factuais geradas por modelo de texto (ex.: "Entre 01/01/2025 e 23/10/2026, foi autora ou coautora de **241 requerimentos**…", cada número é link); atividade recente; abas.
-- **Proposição:** status em uma linha com data; etapas por tipo (Protocolado → Lido → Comissões → Pauta → Votado → Sancionado/Vetado); ementa; nota de contexto do tipo ("Indicação é uma sugestão ao Executivo e não obriga a Prefeitura"); autores; linha do tempo (principais eventos visíveis, demais sob demanda); votações; norma resultante; documentos e link oficial; rodapé de fonte.
-- **Sessão / votação:** resultado em texto ("Aprovado · 7 sim, 3 não, 1 ausente"), 11 marcadores com nome agrupados por voto, quórum com link ao glossário; votação simbólica escrita como tal.
+### 10.4 Páginas-chave
+- **Início:** os 11 vereadores em ordem alfabética (foto, nome parlamentar, partido); "nesta semana: N proposições novas, M votações nominais"; votações divididas recentes; busca; selo "dados até dd/mm".
+- **Vereador:** foto com crédito, nome parlamentar e civil, partido, mandato, cargos; "Em resumo" com 3–4 frases factuais (ex.: "Entre 01/01/2025 e 23/10/2026, foi autora ou coautora de **241 requerimentos**…", cada número é link); atividade recente; abas.
+- **Proposição (mínima):** tipo, número, ano, ementa, autores, situação atual com data, votações, natureza, link "ver documento completo no site da Câmara". Sem texto integral.
+- **Votação:** resultado em texto ("Aprovado · 7 sim, 3 não, 1 ausente"), 11 marcadores com nome agrupados por voto, quórum com link ao glossário; votação simbólica escrita como tal.
 
-### 10.4 Fluxos principais
-1. "O que meu vereador fez?" → Vereadores → perfil → clique no número → lista filtrada → proposição → documento oficial.
-2. "O que pediram para o meu bairro?" → Buscar "Araretama" → filtro de bairro aplicado (classificação da própria Câmara) → lista → compartilhar URL no WhatsApp.
-3. "Como votaram no projeto X?" → busca "PL 45/2026" → proposição → votação → voto de cada um.
-4. "De onde vem esse número?" → "Sobre estes dados" → método versionado → consulta → download.
+### 10.5 Fluxos principais
+1. "O que meu vereador fez?" → Início → vereador → clique no número → lista filtrada → item → documento oficial.
+2. "O que pediram para o meu bairro?" → Buscar "Araretama" → filtro de bairro (classificação da própria Câmara) → lista → compartilhar URL no WhatsApp.
+3. "Como votaram no projeto X?" → busca "PL 45/2026" → votação → voto de cada um.
+4. "De onde vem esse número?" → "Sobre estes dados" → método versionado → download.
 
-### 10.5 Busca
-Uma caixa que entende "PL 45/2026", "req 2398/2026", nome de vereador (com tolerância a erro via `pg_trgm`) e texto livre (FTS em português sem acento, pesos: ementa > texto). Filtros na URL. Resultados agrupados por tipo de entidade.
+### 10.6 Busca
+Uma caixa que entende "PL 45/2026", "req 2398/2026", nome de vereador (tolerante a erro via `pg_trgm`), bairro e texto livre (FTS em português sem acento sobre ementas). Filtros na URL.
 
-### 10.6 Uso de IA — avaliado caso a caso
-| Uso | Precisa? | Decisão proposta |
+### 10.7 Uso de IA
+Com a decisão "só free tier", **IA paga fica fora**. E, avaliando caso a caso, ela não faz falta na v1:
+
+| Uso | Precisa? | Decisão |
 |---|---|---|
-| Extrair bairro | Não | A própria Câmara classifica por bairro na API |
-| Classificar tipo, autor, situação | Não | Vêm estruturados da fonte |
-| Natureza (rotineira × substantiva) | Pouco | Regras por tipo + palavras-chave da ementa, revisáveis no admin |
-| Tema | Talvez | Regras primeiro; IA (modelo pequeno, em lote, resultado persistido) só para sugerir, com rótulo "classificação automática" e revisão humana para os temas publicados |
-| Resumo cidadão | Sim, mas restrito | Só para projetos de lei e de resolução (centenas/ano), gerado uma vez por versão do texto, rotulado, ao lado do original; nunca para requerimentos/indicações (a ementa já é o resumo) |
+| Bairro | Não | A API da Câmara já classifica |
+| Tipo, autor, situação | Não | Vêm estruturados da fonte |
+| Natureza (rotineira × substantiva) | Não | Regras por tipo + palavras-chave da ementa, revisáveis no admin |
+| Tema | Talvez, depois | Regras por palavras-chave na v1; IA só se surgir opção gratuita confiável e com revisão humana |
+| Resumo cidadão | Não na v1 | A ementa oficial + nota de contexto por tipo bastam; o documento completo está a um clique |
 | Explicar situação de tramitação | Não | Texto fixo por tipo de evento no vocabulário controlado |
-
-Custo estimado com modelo pequeno em lote: centavos a poucos dólares por ano. Nenhuma chamada de IA quando o cidadão abre a página.
 
 ---
 
@@ -469,13 +481,13 @@ Pragmático, no mesmo app, com Better Auth (convite, sem cadastro aberto; TOTP o
 
 ## 13. Automação
 
-- **Agendas:** API da Câmara a cada 2–3 h em dias úteis, 1× nos fins de semana; tramitação/votos após cada sessão (terça à noite e quarta de manhã) quando liberado; SIAPE diário; TCE-SP mensal; TSE por eleição.
+- **Agendas (semanais, decisão do dono do projeto):** API da Câmara toda quarta de manhã, depois da sessão ordinária de terça; tramitação/votos no mesmo horário, quando liberados; SIAPE semanal; TCE-SP mensal (a fonte só fecha o mês depois); TSE por eleição; reconciliação completa mensal. Disparo manual disponível para correções e para semanas atípicas (sessões extraordinárias).
 - **Concorrência:** um coletor por fonte de cada vez (`concurrency` no workflow); timeout por execução.
 - **Retries:** backoff exponencial com jitter só para falha de rede e 5xx; 4xx e "Bot Verification" não são repetidos.
 - **Checkpoints:** cursor por fonte (última página/ID visto) no banco; uma execução interrompida retoma.
 - **Monitoramento:** cada execução grava `execucao_coleta`, faz ping no Healthchecks (início, sucesso, falha) e manda erros ao Sentry; UptimeRobot monitora o site e a página de status das fontes; alerta por e-mail.
-- **Pós-coleta:** invalidação de cache só das entidades alteradas; regeneração das exportações.
-- **Backups:** `pg_dump` noturno para o R2 com retenção (30 diários + 12 mensais) e teste de restauração mensal documentado.
+- **Pós-coleta:** invalidação de cache só das entidades alteradas; regeneração das exportações e commit dos snapshots/dados abertos no repositório público de dados (o commit semanal também mantém o repositório ativo, evitando a desativação automática do `schedule`).
+- **Backups:** `pg_dump` semanal, criptografado (`age`), guardado como artefato em repositório privado no GitHub, com retenção de 12 semanais + 12 mensais; restauração testada todo mês e documentada. O Neon Free ainda oferece restauração pontual curta como segunda linha.
 
 ---
 
@@ -494,7 +506,7 @@ Pragmático, no mesmo app, com Better Auth (convite, sem cadastro aberto; TOTP o
 **LGPD e responsabilidade editorial**
 - Base: dados de agentes públicos no exercício da função são de interesse público; ainda assim, minimizar.
 - Não coletar CPF, endereço, bens, dados de familiares.
-- **Textos de honrarias** citam cidadãos comuns (biografia, data de nascimento): não republicar o texto integral dessas espécies; mostrar ementa e link oficial.
+- **O portal não republica o texto integral das proposições** (não é um espelho do site da Câmara): mostra ementa, metadados e link para o documento oficial. Isso também resolve os **textos de honrarias**, que citam cidadãos comuns (biografia, data de nascimento).
 - Fornecedores pessoa física em despesas: mostrar nome só quando a fonte oficial já publica e houver função pública (ex.: diária de vereador); caso contrário, "pessoa física" com link à fonte.
 - Distinguir sempre "dado oficial da Câmara" de "dado de outra fonte pública" e de "dado derivado pelo OSB".
 - Páginas obrigatórias: política de privacidade (o site não coleta dados do visitante além de métricas agregadas sem cookies), termos de uso, canal de correção com prazo de resposta, e espaço para manifestação do vereador sobre os próprios dados.
@@ -570,12 +582,12 @@ docs/research/            esta pesquisa
 | Dados históricos incompletos | Alta | Médio | Rótulo "histórico importado"; lacuna mostrada como lacuna |
 | Interpretação legislativa errada (ex.: presidente "ausente") | Média | Alto | Regras do Regimento revisadas por alguém do OSB; vocabulário controlado; notas de papel |
 | Leitura de volume como mérito / uso político | Alta | Alto | Sem ranking, natureza da proposição, contexto obrigatório, princípios editoriais publicados |
-| Termos da Vercel Hobby (uso institucional) | Média | Médio | Confirmar com o suporte ou usar Pro no lançamento |
+| Termos da Vercel Hobby (uso institucional) | Média | Médio | Projeto voluntário e não comercial, sem anúncios nem doações no site; perguntar ao suporte da Vercel; plano B gratuito: Oracle Always Free (seção 8.3). Upgrade pago está fora do escopo |
 | Neon estourar cota e suspender | Baixa | Alto | Autoscaling limitado, cache agressivo, exportações fora do banco, alerta de uso |
-| `schedule` do Actions desativado por inatividade | Média | Médio | Heartbeat + alerta; relógio externo se necessário |
+| `schedule` do Actions desativado por inatividade (60 dias sem commit) | Baixa | Médio | Commit semanal de dados mantém o repositório ativo; heartbeat no Healthchecks alerta se a quarta-feira passar sem coleta |
 | Token/credencial expirar | Média | Médio | Datas anotadas, heartbeat detecta |
-| Sustentabilidade (voluntários saem) | Alta | Alto | Custo ~zero, documentação, dados depositados, "modo arquivo" planejado |
-| Nome "Acompanhe seu Vereador" já usado pelo OS Campos Gerais (hoje fora do ar) | Baixa | Baixo | Alinhar com o OSB nacional |
+| Sustentabilidade (voluntários saem) | Alta | Alto | Custo zero, documentação, dados abertos no GitHub, "modo arquivo" planejado |
+| Um free tier mudar as regras | Média | Médio | Nada depende de um único fornecedor sem saída: Postgres padrão, dados em Git, plano B documentado |
 | Fotos oficiais e direitos de imagem | Baixa | Baixo | Usar as fotos oficiais com crédito; pedir autorização formal junto com o pedido do token |
 
 ### 18.1 Hipóteses a verificar (primeiras tarefas da implementação)
@@ -615,19 +627,19 @@ Limites que respeitei: o classificador de segurança bloqueou o uso de proxy de 
 
 ## 20. Decisões que preciso de você
 
+**Já decididas (24/10/2026):** escopo só de Pindamonhangaba (Observatório e Câmara); só free tier, sem cartão e sem domínio pago (endereço `*.vercel.app`); atualização semanal; portal centrado nos vereadores, que linka para os documentos oficiais em vez de copiar o site da Câmara; sem IA paga (temas só por regras).
+
+Ainda em aberto:
+
 1. **Pedido institucional à Câmara** (o mais importante). O OSB envia ofício pedindo: (a) liberação do User-Agent do coletor no anti-robô; (b) se possível, tramitação, votações e presenças na API; (c) autorização de uso das fotos oficiais. Quem assina e quando?
-2. **Token da API:** alguém do OSB cria a conta de cidadão no site da Câmara e me passa o token como secret (nunca no chat ou em commit).
+2. **Token da API:** alguém do OSB cria a conta de cidadão no site da Câmara e me passa o token como secret do GitHub (nunca no chat ou em commit).
 3. **Enquanto a Câmara não libera:** aceita a **coleta assistida** (voluntário envia o PDF de votação/ata pelo admin) como ponte? Ou prefere lançar sem votações e presenças?
-4. **Hospedagem:** Vercel Hobby durante o desenvolvimento e Pro (US$ 20/mês) no lançamento? Ou confirmar com a Vercel que o uso por ONG voluntária cabe no Hobby? Ou a opção de VPS em São Paulo (IP fixo, mais manutenção)?
-5. **Cartão para o Cloudflare R2** (uso esperado dentro do grátis). Se não houver, uso Backblaze B2.
-6. **Domínio:** `acompanheseuvereador.org.br` exige CNPJ do OSB Pindamonhangaba (R$ 40/ano). Registrar agora ou no lançamento? Quer também o `.com.br` defensivo?
-7. **Licenças:** código **MIT** (máximo reuso pela rede OSB) ou **AGPL-3.0** (obriga quem reusar a publicar melhorias)? Dados: **CC BY 4.0**?
-8. **Profundidade histórica da v1:** só a legislatura atual (2025–2028) ou também 2021–2024?
-9. **Dados pessoais:** mostrar nomes de assessores/servidores (o portal oficial já mostra)? Minha recomendação: não na v1; mostrar só agregados por gabinete se a fonte permitir atribuição.
-10. **IA:** autoriza classificação temática assistida e resumo cidadão de projetos de lei, sempre rotulados e com revisão humana antes de publicar o tema? Quem revisa?
-11. **Governança editorial:** quem são os administradores, quem aprova correções e qual o e-mail público de contato e correção?
-12. **Nome e rede:** confirmar "Acompanhe seu Vereador" com o OSB nacional (o OS Campos Gerais usou o mesmo nome) e se o código deve nascer pensado para outros observatórios.
-13. **GitHub:** posso criar a branch `main` com um commit inicial (README e licença) para abrir o PR desta pesquisa e depois renomear o repositório para `acompanhe-seu-vereador`?
+4. **Licenças:** código **MIT** (máximo reuso) ou **AGPL-3.0** (obriga quem reusar a publicar melhorias)? Dados: **CC BY 4.0**?
+5. **Profundidade histórica da v1:** só a legislatura atual (2025–2028) ou também 2021–2024?
+6. **Dados pessoais:** mostrar nomes de assessores/servidores (o portal oficial já mostra)? Minha recomendação: não na v1; mostrar só agregados por gabinete se a fonte permitir atribuição.
+7. **Temas por regras:** quem do OSB revisa o vocabulário de temas (palavras-chave → tema) antes de publicar?
+8. **Governança editorial:** quem são os administradores, quem aprova correções e qual o e-mail público de contato e correção?
+9. **GitHub:** posso criar a branch `main` com um commit inicial (README e licença) para abrir o PR desta pesquisa? E renomear o repositório para `acompanhe-seu-vereador`?
 
 ---
 
@@ -639,7 +651,7 @@ Cada fase termina com algo funcionando e verificável. Fases 2–3 dependem só 
 |---|---|---|
 | 0 | Pré-requisitos (paralelo) | Ofício enviado; token obtido; decisões da seção 20 respondidas |
 | 1 | **Foundation** | `main` protegida, README, licença, CI verde (lint, typecheck, testes, build); app Next.js vazio com headers de segurança em preview; Postgres + migrations reproduzíveis; ADRs 0001–0005 |
-| 2 | **Ingestão — núcleo + API da Câmara** | Cliente HTTP educado, snapshots no R2, `execucao_coleta`, plausibilidade; coletor de vereadores/proposições/normas/pautas/bairros via API rodando no Actions; fixtures; relatório das hipóteses H1–H4 |
+| 2 | **Ingestão — núcleo + API da Câmara** | Cliente HTTP educado, snapshots no repositório público de dados, `execucao_coleta`, plausibilidade; coletor semanal de vereadores/proposições/normas/pautas/bairros via API no Actions; fixtures; relatório das hipóteses H1–H4 |
 | 3 | **Modelo e reconciliação** | Modelo completo (pessoas, mandatos, apelidos, proposições, autoria, normas); importação do baseline do Power BI; relatório de divergências fonte × Power BI |
 | 4 | **Admin mínimo** | Login com 2FA; telas de fontes, execuções, pendências, correções e auditoria |
 | 5 | **Público — Vereadores e Proposições** | Perfis e páginas de proposição com proveniência; teste "número = lista" no CI; mobile e axe aprovados |
@@ -648,8 +660,8 @@ Cada fase termina com algo funcionando e verificável. Fases 2–3 dependem só 
 | 8 | **Presenças** | Extração das atas com taxa de acerto medida; metodologia de presença publicada |
 | 9 | **Transparência** | Despesas da Câmara (SIAPE × TCE reconciliados), diárias, emendas impositivas |
 | 10 | **Metodologia e dados abertos** | Páginas de metodologia, glossário, correções; exportações CSV/JSON com dicionário |
-| 11 | **Temas e IA (opcional)** | Classificação por regras + sugestão por IA rotulada e revisada |
+| 11 | **Temas por regras** | Vocabulário de temas revisado pelo OSB; classificação por palavras-chave, rotulada como derivada; sem IA paga |
 | 12 | **Hardening** | Auditoria de acessibilidade manual, orçamentos de performance, revisão de segurança, alertas, teste de restauração de backup |
-| 13 | **Lançamento** | Domínio, produção, status page, anúncio |
+| 13 | **Lançamento** | Produção no endereço gratuito `*.vercel.app`, status page, anúncio |
 
 Próximo passo concreto após sua aprovação: Fase 1, começando por `superpowers:writing-plans` para transformar este roadmap em plano de implementação detalhado da Foundation.

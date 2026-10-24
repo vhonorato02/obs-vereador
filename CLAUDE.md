@@ -8,6 +8,13 @@ Plataforma pública do **Observatório Social do Brasil – Pindamonhangaba** pa
 
 Fase 1 concluída (pesquisa e plano em `docs/research/fase-1-relatorio.md`). **Implementação só começa após aprovação explícita do dono do projeto.** Não criar banco de produção, não publicar produção, não fazer scaffolding antes disso.
 
+## Decisões do dono do projeto (24/10/2026)
+
+- **Só Pindamonhangaba:** Observatório Social do Brasil – Pindamonhangaba e Câmara Municipal de Pindamonhangaba. Nada de outros observatórios ou municípios.
+- **Só free tier:** nenhum serviço pago, nenhum cartão, nenhum domínio comprado (endereço `*.vercel.app`). Sem IA paga.
+- **Atualização semanal** (quarta de manhã, depois da sessão de terça) + disparo manual.
+- **Não é um clone do site da Câmara:** é um portal para acompanhar todos os vereadores. Mostra ementa, metadados, votos e contexto, e linka para o documento oficial; não republica texto integral.
+
 ## Princípios inegociáveis
 
 1. **Proveniência:** todo dado exibido tem fonte, URL original, data de coleta e, se houver, transformação/correção. Nenhum "número mágico": toda contagem leva à lista dos registros que a compõem, e um teste garante que número = tamanho da lista.
@@ -44,7 +51,7 @@ Fase 1 concluída (pesquisa e plano em `docs/research/fase-1-relatorio.md`). **I
 | `docs/research/camara-site.md` | mapa do site e da API da Câmara |
 | `docs/research/power-bi.md` | engenharia reversa do Power BI + baseline histórico |
 | `docs/research/benchmark-design.md` | benchmark cívico, princípios de UI/dataviz, IA, URLs |
-| `docs/research/stack-free-tiers.md` | stack, limites de free tier verificados, domínio |
+| `docs/research/stack-free-tiers.md` | stack e limites de free tier verificados (a decisão final está na seção 8 do relatório) |
 | `docs/environment.md` | ferramentas do Claude Code instaladas e por quê |
 | `.github/workflows/source-probe.yml` | sondagem manual de alcance das fontes a partir do GitHub Actions |
 

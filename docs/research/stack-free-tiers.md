@@ -2,6 +2,8 @@
 
 > Pesquisa feita em **24/10/2026**. Todos os limites e preços abaixo foram conferidos nesta data nas páginas oficiais citadas (seção [Fontes](#fontes), referências `[Sxx]`). Quando a página não mostra data, isso está indicado. Nada foi comprado, nenhuma conta foi criada.
 > Legenda: ✅ verificado na fonte oficial · ⚠️ divergência entre fontes ou fonte secundária · 🔎 inferência minha (não é afirmação da fonte).
+>
+> **Atualização (24/10/2026, decisões do dono):** só free tier, sem cartão e sem domínio comprado; coleta semanal. Por isso o Cloudflare R2, o relógio externo no Cloudflare, o domínio `.org.br` e qualquer plano pago citados abaixo **não serão usados**. A stack final está na seção 8 de `fase-1-relatorio.md`; este arquivo fica como registro da pesquisa.
 
 ---
 
