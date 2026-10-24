@@ -1,7 +1,33 @@
+
+
 {
   "enabledPlugins": {
     "superpowers@anthropic-plugin-directory": true,
     "frontend-design@anthropic-plugin-directory": true,
     "playwright@anthropic-plugin-directory": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "mcp__github",
+      "mcp__Vercel",
+      "mcp__Google_Drive",
+      "mcp__Context7",
+      "mcp__claude-code-remote"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(git push --force:*)",
+      "mcp__Vercel__buy_domain",
+      "mcp__Vercel__create_or_transfer_domain"
+    ]
   }
 }
