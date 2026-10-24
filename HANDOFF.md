@@ -1,0 +1,56 @@
+# HANDOFF — Acompanhe seu Vereador
+
+> Arquivo de continuidade entre sessões. Atualize ao fim de cada bloco de trabalho.
+> Última atualização: 2026-10-24 (sessão de Fase 0 + Fase 1).
+
+## Onde estamos
+
+- **Fase atual:** Fase 1 (pesquisa e planejamento). **Nenhum código de aplicação foi escrito** — por decisão do briefing, a implementação só começa após aprovação do plano.
+- **Repositório:** `vhonorato02/obs-vereador` (público). Branch de trabalho: `ccr-7efe4374-h0pmz6`.
+- **Entregável da Fase 1:** `docs/research/fase-1-relatorio.md` (relatório para discussão). Cópia no Google Drive (pasta "Acompanhe seu Vereador").
+
+## Estado das tarefas
+
+| Bloco | Estado |
+|---|---|
+| Fase 0 — ambiente (Superpowers, plugins, memória) | feito (ver `docs/environment.md`) |
+| Engenharia reversa do Power BI | feito (`docs/research/power-bi.md`) |
+| Mapeamento do site/API da Câmara | feito em boa parte (`docs/research/camara-site.md`) |
+| Transparência / TCE-SP / fontes complementares | ver relatório |
+| Benchmark, design, stack, free tiers | feito (`docs/research/benchmark-design.md`, `docs/research/stack-free-tiers.md`) |
+| Relatório da Fase 1 | ver relatório |
+
+## Descobertas que mudam a arquitetura (leia antes de tudo)
+
+1. **A Câmara tem API oficial de Dados Abertos** (sistema SoftCam):
+   `GET https://www.pindamonhangaba.sp.leg.br/jsonweb/web-aplicativo.php?keysoft=<TOKEN>&call=<serviço>`.
+   Token gratuito obtido com login/cadastro de cidadão em `/cidadao`. **Sem token, responde HTTP 200 com corpo vazio** (falha silenciosa).
+   Serviços: `vereadores` (só em exercício), `proposicoes_tipos`, `proposicoes&tipo=…&pagina=`, `proposicoes&bairro=…`, `legislacoes_tipos`, `legislacoes`, `pautas`, `bairros`, `publicacoes_tipos`, `publicacoes`, `atendimento`. RSS de notícias em `/jsonweb/web-rss.php` (sem token).
+2. **Votações nominais existem** no fragmento AJAX público de tramitação: `GET /ajax/tramitacao/proposicao/{id}` (timeline + "Votos: Favoráveis (10): nomes…" + PDFs de pauta e votação).
+3. **Proteção anti-robô (LiteSpeed reCAPTCHA)** no site. Política do projeto: **nunca contornar** (sem trocar User-Agent para fugir do desafio, sem resolver captcha). Se aparecer "Bot Verification", o coletor para e alerta. Caminho correto: token da API + pedido formal de liberação à Câmara.
+4. **O site recusa conexões de alguns datacenters** (ex.: Google Cloud, onde roda o Claude Code na nuvem) mas responde da **Vercel região gru1 (AWS São Paulo)** em ~0,35 s. GitHub Actions (Azure EUA) ainda **não foi testado**.
+5. O Power BI atual guarda **só contagens agregadas** (vereador × ano), digitadas à mão. Baseline extraído em `docs/research/power-bi.md`.
+
+## Limites de segurança que esta sessão respeitou (não tente contornar)
+
+- O classificador do modo automático bloqueou: proxy de terceiros (r.jina.ai), teste de variação de User-Agent contra o anti-robô, e edição das próprias regras de permissão. Isso é intencional.
+- Para reduzir prompts de permissão: o dono do projeto escolhe o modo **Auto** no seletor da sessão, ou adiciona regras `permissions.allow` ele mesmo.
+
+## Ambiente útil (IDs, sem segredos)
+
+- Vercel team: `team_43xSvVJZ9lHuy6K7NNxlMhXG` (slug `jose-victors-projects-5cc9abbe`). Nenhum projeto Vercel do produto criado ainda.
+- Supabase org: `pktbuinlozbpdgbjmhna` (nada criado).
+- Pesquisa no site da Câmara foi feita a partir de um **Vercel Sandbox descartável** (`gru1`, rede restrita aos domínios da Câmara). Ele expira sozinho; recrie se precisar.
+- Power BI público: cluster `wabi-brazil-south-api`, resourceKey `21174870-0467-423b-87ed-9fea7c95271b`, modelId `11768514`.
+- Arquivos originais do Power BI (.pbix/.xlsx/GLOSSÁRIO.docx) no Google Drive do dono, pasta pai `1br-SgA4I_sxS68YXhaAH2mPyjjVDwlRN`.
+
+## Identidade Git
+
+Commits usam a identidade **local** do repositório: `José Victor Honorato <33707633+vhonorato02@users.noreply.github.com>` (e-mail noreply do GitHub para não expor e-mail pessoal em repo público). Sem assinaturas de IA em commits, PRs ou código (exigência do briefing).
+
+## Próximos passos
+
+1. Dono do projeto lê o relatório e responde às decisões da seção 20.
+2. Criar conta de cidadão no site da Câmara e obter o token da API (só o dono/OSB pode fazer).
+3. Testar alcance do site a partir do GitHub Actions (workflow de sondagem) — decide onde roda o coletor.
+4. Após aprovação: Fase "Foundation" do roadmap.
