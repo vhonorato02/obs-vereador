@@ -7,7 +7,9 @@
 
 - **v1 em produção** na Vercel, projeto `acompanhe-seu-vereador` (id `prj_tduqr6ZAVAtyEGz5mJJ5JgbTOaZe`, team `team_43xSvVJZ9lHuy6K7NNxlMhXG`), ligado ao repositório `vhonorato02/obs-vereador`, **branch de produção `main`**.
 - Por decisão do dono: trabalho direto na `main`, sem PR.
-- Endereço: subdomínio gratuito `*.vercel.app` (ver Deployments do projeto).
+- **Endereço: https://acompanhe-seu-vereador.vercel.app** (público).
+- Primeira coleta (24/10/2026): 16.822 proposições e 397 normas desde 01/01/2025, 377 consultas, build de 10 min. Coletas seguintes incrementais: ~1 min.
+- Reconciliação com o Power BI: 2025 bate exatamente; confirmada a contagem de coautoria por coautor (`docs/research/power-bi.md` §9).
 
 ## Decisões do dono (24/10/2026)
 
