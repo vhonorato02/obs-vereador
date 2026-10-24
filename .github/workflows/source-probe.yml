@@ -24,6 +24,8 @@ jobs:
           for url in \
             "https://www.pindamonhangaba.sp.leg.br/" \
             "https://www.pindamonhangaba.sp.leg.br/jsonweb/web-rss.php" \
+            "https://www.pindamonhangaba.sp.leg.br/ajax/tramitacao/proposicao/153972" \
+            "https://www.pindamonhangaba.sp.leg.br/softcam/votacao_print_pdf.php?topico=88553" \
             "https://siapegov.pindamonhangaba.sp.gov.br/portal-transparencia/api/sis_entidade" \
             "https://transparencia.tce.sp.gov.br/api/json/municipios"; do
             sleep 5
