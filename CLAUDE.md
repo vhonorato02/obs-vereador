@@ -6,14 +6,15 @@ Plataforma pública do **Observatório Social do Brasil – Pindamonhangaba** pa
 
 ## Fase atual
 
-Fase 1 concluída (pesquisa e plano em `docs/research/fase-1-relatorio.md`). **Implementação só começa após aprovação explícita do dono do projeto.** Não criar banco de produção, não publicar produção, não fazer scaffolding antes disso.
+**v1 em produção** (Vercel, branch `main`). O dono autorizou trabalhar direto em produção na `main`. Arquitetura real e próximos passos em `HANDOFF.md`; pesquisa em `docs/research/`.
 
 ## Decisões do dono do projeto (24/10/2026)
 
 - **Só Pindamonhangaba:** Observatório Social do Brasil – Pindamonhangaba e Câmara Municipal de Pindamonhangaba. Nada de outros observatórios ou municípios.
 - **Só free tier:** nenhum serviço pago, nenhum cartão, nenhum domínio comprado (endereço `*.vercel.app`). Sem IA paga.
 - **Atualização semanal** (quarta de manhã, depois da sessão de terça) + disparo manual.
-- **Não é um clone do site da Câmara:** é um portal para acompanhar todos os vereadores. Mostra ementa, metadados, votos e contexto, e linka para o documento oficial; não republica texto integral.
+- **Não é um clone do site da Câmara:** é um portal para acompanhar todos os vereadores. Mostra ementa, metadados e contexto, e linka para o documento oficial; não republica texto integral.
+- **Sem votações e sem presença na v1.** Atualização **quinzenal feita pelo dono** (Redeploy na Vercel); o coletor roda no build.
 
 ## Princípios inegociáveis
 
@@ -49,6 +50,9 @@ Fase 1 concluída (pesquisa e plano em `docs/research/fase-1-relatorio.md`). **I
 | `HANDOFF.md` | estado atual e próximos passos |
 | `docs/research/fase-1-relatorio.md` | relatório completo da Fase 1 (decisões pendentes na seção 20) |
 | `docs/research/camara-site.md` | mapa do site e da API da Câmara |
+| `docs/research/camara-api.md` | API validada com token: campos, coautoria, profundidade |
+| `scripts/collect.ts` | coletor (roda no build) |
+| `src/lib/data/` | modelo, derivações e filtros (número = lista) |
 | `docs/research/power-bi.md` | engenharia reversa do Power BI + baseline histórico |
 | `docs/research/benchmark-design.md` | benchmark cívico, princípios de UI/dataviz, IA, URLs |
 | `docs/research/stack-free-tiers.md` | stack e limites de free tier verificados (a decisão final está na seção 8 do relatório) |
@@ -61,4 +65,4 @@ Superpowers (planejamento, TDD, debugging, verificação), frontend-design e Pla
 
 ## Comandos
 
-Ainda não há aplicação. Comandos de build/teste serão registrados aqui na Fase Foundation.
+`npm run collect` (sem `CAMARA_API_TOKEN` usa a amostra de `fixtures/`) · `npm run dev` · `npm test` · `npm run typecheck` · `npm run build`

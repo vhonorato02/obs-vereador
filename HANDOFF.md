@@ -1,73 +1,54 @@
 # HANDOFF — Acompanhe seu Vereador
 
 > Arquivo de continuidade entre sessões. Atualize ao fim de cada bloco de trabalho.
-> Última atualização: 2026-10-24 (sessão de Fase 0 + Fase 1).
+> Última atualização: 2026-10-24 (v1 publicada).
 
 ## Onde estamos
 
-- **Fase atual:** Fase 1 (pesquisa e planejamento). **Nenhum código de aplicação foi escrito** — por decisão do briefing, a implementação só começa após aprovação do plano.
-- **Repositório:** `vhonorato02/obs-vereador` (público). Branch de trabalho: `ccr-7efe4374-h0pmz6`.
-- **Entregável da Fase 1:** `docs/research/fase-1-relatorio.md` (relatório para discussão). Cópia no Google Drive (pasta "Acompanhe seu Vereador").
+- **v1 em produção** na Vercel, projeto `acompanhe-seu-vereador` (id `prj_tduqr6ZAVAtyEGz5mJJ5JgbTOaZe`, team `team_43xSvVJZ9lHuy6K7NNxlMhXG`), ligado ao repositório `vhonorato02/obs-vereador`, **branch de produção `main`**.
+- Por decisão do dono: trabalho direto na `main`, sem PR.
+- Endereço: subdomínio gratuito `*.vercel.app` (ver Deployments do projeto).
 
-## Estado das tarefas
+## Decisões do dono (24/10/2026)
 
-| Bloco | Estado |
-|---|---|
-| Fase 0 — ambiente (Superpowers, plugins, memória) | feito (ver `docs/environment.md`) |
-| Engenharia reversa do Power BI | feito (`docs/research/power-bi.md`) |
-| Mapeamento do site/API da Câmara | feito (`docs/research/camara-site.md`) |
-| Transparência (SIAPE GOV), TCE-SP, TSE | feito (seções 3 e 5 do relatório) |
-| Teste de alcance a partir do GitHub Actions | feito (workflow `source-probe`, resultado abaixo) |
-| Benchmark, design, stack, free tiers | feito (`docs/research/benchmark-design.md`, `docs/research/stack-free-tiers.md`) |
-| Relatório da Fase 1 | **entregue** — `docs/research/fase-1-relatorio.md` |
-| Decisões do dono (24/10) | aplicadas no relatório, `CLAUDE.md` e aqui (ver abaixo) |
-| Aguardando | respostas do dono às 9 decisões em aberto da seção 20 do relatório |
+1. Só Pindamonhangaba (Observatório e Câmara).
+2. Só free tier: sem cartão, sem domínio comprado, sem IA paga.
+3. Portal para acompanhar todos os vereadores, não clone do site da Câmara.
+4. **Sem votações** (e, por consequência, sem presença) na v1.
+5. **Atualização quinzenal feita pelo dono**: Vercel → Deployments → produção → ⋯ → Redeploy (com build cache).
+6. Implementar e publicar direto em produção, na `main`.
 
-## Decisões do dono do projeto (24/10/2026)
+## Arquitetura real da v1 (mais simples que o plano da Fase 1)
 
-1. **Só Pindamonhangaba** — Observatório Social do Brasil – Pindamonhangaba e Câmara de Pindamonhangaba. (O OS Campos Gerais aparecia só como exemplo de benchmark; foi removido do plano.)
-2. **Só free tier** — sem cartão, sem domínio comprado (`*.vercel.app`), sem IA paga. O Cloudflare R2 saiu (pede cartão): snapshots e dados abertos vão para um repositório público de dados no GitHub; backups `pg_dump` criptografados em repositório privado.
-3. **Atualização semanal** — coleta toda quarta de manhã (após a sessão de terça), TCE-SP mensal, reconciliação mensal.
-4. **Portal para acompanhar todos os vereadores, não um clone do site da Câmara** — ementa, metadados, votos, contexto e link para o documento oficial; sem texto integral. Menu: Vereadores · Votações · Como funciona + Buscar (relatório, seção 10).
+- Sem banco, sem admin, sem login. O plano previa Neon + Better Auth + GitHub Actions; com sem votações, atualização manual quinzenal e uma única fonte (API), nada disso se pagava.
+- `scripts/collect.ts` roda no `prebuild` da Vercel, consulta a API com `CAMARA_API_TOKEN` (variável sensível da Vercel, só produção) e gera `data/generated/dataset.json` + `public/dados/` + `public/fotos/`.
+- Coleta incremental usando `.next/cache/acompanhe/coleta.json` (cache de build da Vercel); completa a cada 30 dias ou com `COLETA_COMPLETA=1`.
+- Qualquer falha (resposta vazia, anti-robô, formato, queda de volume) **falha o build** → a Vercel mantém a versão anterior no ar.
+- Sem token fora de produção: usa `fixtures/camara-amostra.json` (amostra real) e mostra aviso.
+- Detalhes da API: `docs/research/camara-api.md`.
 
-## Descobertas que mudam a arquitetura (leia antes de tudo)
+## Comandos
 
-1. **A Câmara tem API oficial de Dados Abertos** (sistema SoftCam):
-   `GET https://www.pindamonhangaba.sp.leg.br/jsonweb/web-aplicativo.php?keysoft=<TOKEN>&call=<serviço>`.
-   Token gratuito obtido com login/cadastro de cidadão em `/cidadao`. **Sem token, responde HTTP 200 com corpo vazio** (falha silenciosa).
-   Serviços: `vereadores` (só em exercício), `proposicoes_tipos`, `proposicoes&tipo=…&pagina=`, `proposicoes&bairro=…`, `legislacoes_tipos`, `legislacoes`, `pautas`, `bairros`, `publicacoes_tipos`, `publicacoes`, `atendimento`. RSS de notícias em `/jsonweb/web-rss.php` (sem token).
-2. **Votações nominais existem** no fragmento AJAX público de tramitação: `GET /ajax/tramitacao/proposicao/{id}` (timeline + "Votos: Favoráveis (10): nomes…" + PDFs de pauta e votação).
-3. **Proteção anti-robô (LiteSpeed reCAPTCHA)** no site. Política do projeto: **nunca contornar** (sem trocar User-Agent para fugir do desafio, sem resolver captcha). Se aparecer "Bot Verification", o coletor para e alerta. Caminho correto: token da API + pedido formal de liberação à Câmara.
-4. **O site recusa conexões de alguns datacenters** (ex.: Google Cloud, onde roda o Claude Code na nuvem) mas responde da **Vercel região gru1 (AWS São Paulo)** em ~0,35 s.
-   **GitHub Actions (Azure EUA), User-Agent honesto, 24/10/2026:** API `/jsonweb/` ✅; HTML, `/ajax/tramitacao/...` e PDF de votação ❌ (página "Bot Verification"); SIAPE GOV ✅; TCE-SP ✅. Conclusão: tramitação/votos dependem de a Câmara liberar o coletor.
-5. **Transparência:** SIAPE GOV tem API JSON pública com a Câmara como `id_entidade=2` (despesas, diárias, contratos, RH, emendas impositivas); TCE-SP `GET /api/json/despesas/pindamonhangaba/{ano}/{mes}` sem autenticação (dados até ago/2026 em out/2026).
-6. O Power BI atual guarda **só contagens agregadas** (vereador × ano), digitadas à mão. Baseline extraído em `docs/research/power-bi.md`.
+`npm install` · `npm run collect` · `npm run dev` · `npm test` · `npm run typecheck` · `npm run build`
 
-## Limites de segurança que esta sessão respeitou (não tente contornar)
+## Próximos passos possíveis
 
-- O classificador do modo automático bloqueou: proxy de terceiros (r.jina.ai), teste de variação de User-Agent contra o anti-robô, e edição das próprias regras de permissão. Isso é intencional.
-- Para reduzir prompts de permissão: o dono do projeto escolhe o modo **Auto** no seletor da sessão, ou adiciona regras `permissions.allow` ele mesmo.
+1. Conferir os números da API com o baseline do Power BI (`docs/research/power-bi.md`) e publicar a reconciliação.
+2. Despesas da Câmara, diárias e emendas impositivas (SIAPE GOV / TCE-SP) — exige capturar parâmetros da API do SIAPE (H8).
+3. Histórico 2021–2024 (a API tem décadas de dados).
+4. Presença/votações só se a Câmara publicar na API ou o dono topar enviar as atas.
+5. Concluir o inventário histórico interrompido (`camara-api.md`).
 
-## Ambiente útil (IDs, sem segredos)
+## Limites de segurança (não contornar)
 
-- Vercel team: `team_43xSvVJZ9lHuy6K7NNxlMhXG` (slug `jose-victors-projects-5cc9abbe`). Nenhum projeto Vercel do produto criado ainda.
-- Supabase org: `pktbuinlozbpdgbjmhna` (nada criado).
-- Pesquisa no site da Câmara foi feita a partir de um **Vercel Sandbox descartável** (`gru1`, rede restrita aos domínios da Câmara). Ele expira sozinho; recrie se precisar.
-- Power BI público: cluster `wabi-brazil-south-api`, resourceKey `21174870-0467-423b-87ed-9fea7c95271b`, modelId `11768514`.
-- Arquivos originais do Power BI (.pbix/.xlsx/GLOSSÁRIO.docx) no Google Drive do dono, pasta pai `1br-SgA4I_sxS68YXhaAH2mPyjjVDwlRN`.
+- Nunca contornar o anti-robô da Câmara; o coletor para se o detectar.
+- O classificador bloqueia proxy de terceiros, variação de User-Agent contra o anti-robô e edição das próprias permissões.
+- Token só na Vercel; nunca em commit, log ou chat.
 
 ## Identidade Git
 
-Commits usam a identidade **local** do repositório: `José Victor Honorato <33707633+vhonorato02@users.noreply.github.com>` (e-mail noreply do GitHub para não expor e-mail pessoal em repo público). Sem assinaturas de IA em commits, PRs ou código (exigência do briefing).
-
-## Próximos passos
-
-1. Dono do projeto lê o relatório e responde às 9 decisões em aberto da seção 20.
-2. OSB envia ofício à Câmara (liberação do coletor no anti-robô; tramitação/votações na API; uso das fotos).
-3. Criar conta de cidadão no site da Câmara e obter o token da API (só o dono/OSB pode fazer); guardar como secret.
-4. Criar a branch `main` (com autorização) para abrir o PR desta pesquisa.
-5. Após aprovação: Fase 1 "Foundation" do roadmap, começando por `superpowers:writing-plans`.
+Local ao repo: `José Victor Honorato <33707633+vhonorato02@users.noreply.github.com>`. Sem assinaturas de IA.
 
 ## Google Drive
 
-Pasta "Acompanhe seu Vereador" (id `1gmzfL0UGzy6z1UjNQsQDHIe0y_4r6rSK`), dentro de "Documents", ao lado de "OBS - PowerBI". Contém cópias em Google Docs do relatório, deste handoff e das notas de pesquisa. **A fonte de verdade é o repositório.**
+Pasta "Acompanhe seu Vereador" (id `1gmzfL0UGzy6z1UjNQsQDHIe0y_4r6rSK`). A fonte de verdade é o repositório.

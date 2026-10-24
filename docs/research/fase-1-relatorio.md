@@ -13,6 +13,8 @@ Documentos de apoio (mesma pasta): `power-bi.md`, `camara-site.md`, `benchmark-d
 > 3. **Atualização semanal** é suficiente.
 > 4. **Não é um clone do site da Câmara.** É um portal para acompanhar **todos os vereadores**: o centro é a pessoa e o que ela fez; o detalhe completo de cada documento fica no site oficial, com link.
 
+> **Atualização (24/10/2026, noite) — v1 publicada.** Novas decisões do dono: sem votações (nem presença), atualização quinzenal feita por ele, e implementação direto em produção. Com isso a arquitetura da v1 ficou bem mais simples do que as seções 6–9, 12, 13 e 21 descrevem: **sem banco, sem admin, sem login, sem GitHub Actions**. O coletor roda no build da Vercel, que alcança a API da Câmara; se a coleta falhar, o build falha e a versão anterior continua no ar. O token respondeu às hipóteses H1–H4 (`camara-api.md`); o serviço de bairros da API veio vazio, então a busca por bairro é textual. Estado atual em `HANDOFF.md`. O restante deste relatório fica como registro do plano.
+
 ---
 
 ## 1. Sumário executivo
