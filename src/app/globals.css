@@ -313,7 +313,6 @@ dl.resumo dd {
 table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 28rem;
   background: var(--color-surface);
 }
 caption {
@@ -338,6 +337,19 @@ thead th {
 }
 tbody th {
   font-weight: 600;
+}
+tbody th .muted {
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+@media (max-width: 30rem) {
+  th,
+  td {
+    padding: var(--space-2);
+  }
+  table {
+    font-size: 0.95rem;
+  }
 }
 
 .lista {

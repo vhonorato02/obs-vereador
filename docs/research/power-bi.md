@@ -102,3 +102,30 @@ Hipóteses a verificar na reconciliação:
 - O glossário, revisado e expandido.
 - Identificação do vereador (foto, partido, mandato, subsídio, votos — com fonte).
 - O baseline acima, importado como **dado histórico**, marcado como tal, até ser reconciliado.
+
+## 9. Reconciliação com a API (24/10/2026)
+
+Feita com `scripts/reconcile-powerbi.ts` sobre a coleta de produção (16.822 proposições desde 01/01/2025). "Soma por vereador" conta uma vez para cada coautor, como o Power BI; "documentos distintos" conta cada proposição uma vez.
+
+| Ano | Tipo | Power BI (soma por vereador) | API: soma por vereador | API: documentos distintos |
+|---|---|---:|---:|---:|
+| 2025 | Moç | 437 | 437 | 371 |
+| 2025 | Emd | 624 | 624 | 472 |
+| 2025 | Ind | 4499 | 4499 | 4482 |
+| 2025 | PLO | 347 | 347 | 328 |
+| 2025 | PR | 54 | 54 | 29 |
+| 2025 | Req | 3146 | 3146 | 3075 |
+| 2025 | PDL | 38 | 38 | 35 |
+| 2026 (até 24/08) | Moç | 226 | 230 | 210 |
+| 2026 (até 24/08) | Emd | 68 | 69 | 61 |
+| 2026 (até 24/08) | Ind | 3773 | 3815 | 3815 |
+| 2026 (até 24/08) | PLO | 182 | 187 | 146 |
+| 2026 (até 24/08) | PR | 16 | 17 | 6 |
+| 2026 (até 24/08) | Req | 1964 | 2003 | 1968 |
+| 2026 (até 24/08) | PDL | 13 | 14 | 14 |
+
+Conclusões:
+- **2025 bate exatamente** com o Power BI nos 7 tipos. O baseline manual estava correto.
+- **Confirmado: o Power BI contava coautoria para cada coautor.** Por exemplo, 347 "projetos de lei" em 2025 são 328 projetos distintos; 54 projetos de resolução são 29.
+- 2026 (até 24/08) tem diferenças pequenas (+1 a +42), compatíveis com itens publicados ou corrigidos depois da última digitação manual.
+- O portal mostra as duas leituras: o perfil conta autoria ou coautoria; o total de proposições conta documentos distintos.
