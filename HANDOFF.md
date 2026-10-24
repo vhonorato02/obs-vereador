@@ -32,8 +32,8 @@
 3. **Proteção anti-robô (LiteSpeed reCAPTCHA)** no site. Política do projeto: **nunca contornar** (sem trocar User-Agent para fugir do desafio, sem resolver captcha). Se aparecer "Bot Verification", o coletor para e alerta. Caminho correto: token da API + pedido formal de liberação à Câmara.
 4. **O site recusa conexões de alguns datacenters** (ex.: Google Cloud, onde roda o Claude Code na nuvem) mas responde da **Vercel região gru1 (AWS São Paulo)** em ~0,35 s.
    **GitHub Actions (Azure EUA), User-Agent honesto, 24/10/2026:** API `/jsonweb/` ✅; HTML, `/ajax/tramitacao/...` e PDF de votação ❌ (página "Bot Verification"); SIAPE GOV ✅; TCE-SP ✅. Conclusão: tramitação/votos dependem de a Câmara liberar o coletor.
-6. **Transparência:** SIAPE GOV tem API JSON pública com a Câmara como `id_entidade=2` (despesas, diárias, contratos, RH, emendas impositivas); TCE-SP `GET /api/json/despesas/pindamonhangaba/{ano}/{mes}` sem autenticação (dados até ago/2026 em out/2026).
-5. O Power BI atual guarda **só contagens agregadas** (vereador × ano), digitadas à mão. Baseline extraído em `docs/research/power-bi.md`.
+5. **Transparência:** SIAPE GOV tem API JSON pública com a Câmara como `id_entidade=2` (despesas, diárias, contratos, RH, emendas impositivas); TCE-SP `GET /api/json/despesas/pindamonhangaba/{ano}/{mes}` sem autenticação (dados até ago/2026 em out/2026).
+6. O Power BI atual guarda **só contagens agregadas** (vereador × ano), digitadas à mão. Baseline extraído em `docs/research/power-bi.md`.
 
 ## Limites de segurança que esta sessão respeitou (não tente contornar)
 
@@ -55,6 +55,11 @@ Commits usam a identidade **local** do repositório: `José Victor Honorato <337
 ## Próximos passos
 
 1. Dono do projeto lê o relatório e responde às decisões da seção 20.
-2. Criar conta de cidadão no site da Câmara e obter o token da API (só o dono/OSB pode fazer).
-3. Testar alcance do site a partir do GitHub Actions (workflow de sondagem) — decide onde roda o coletor.
-4. Após aprovação: Fase "Foundation" do roadmap.
+2. OSB envia ofício à Câmara (liberação do coletor no anti-robô; tramitação/votações na API; uso das fotos).
+3. Criar conta de cidadão no site da Câmara e obter o token da API (só o dono/OSB pode fazer); guardar como secret.
+4. Criar a branch `main` (com autorização) para abrir o PR desta pesquisa.
+5. Após aprovação: Fase 1 "Foundation" do roadmap, começando por `superpowers:writing-plans`.
+
+## Google Drive
+
+Pasta "Acompanhe seu Vereador" (id `1gmzfL0UGzy6z1UjNQsQDHIe0y_4r6rSK`), dentro de "Documents", ao lado de "OBS - PowerBI". Contém cópias em Google Docs do relatório, deste handoff e das notas de pesquisa. **A fonte de verdade é o repositório.**

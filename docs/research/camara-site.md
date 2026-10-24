@@ -121,3 +121,16 @@ Não há página de presença por sessão identificada. As **atas em PDF** regis
 - Ausência de cabeçalhos de cache → detectar mudança por hash do conteúdo normalizado.
 - PHP 7.4 em fim de vida → probabilidade de troca de sistema/fornecedor nos próximos anos (aconteceu antes: Plone/SAPL → SoftCam).
 - Erros silenciosos (HTTP 200 vazio) → validação de plausibilidade obrigatória.
+
+## 10. Teste a partir do GitHub Actions (24/10/2026, User-Agent honesto)
+
+Workflow `.github/workflows/source-probe.yml`, runner `ubuntu-latest` (Azure, EUA).
+
+| Endpoint | Resultado |
+|---|---|
+| Página inicial (HTML) | página "Bot Verification" |
+| `/jsonweb/web-rss.php` (API) | 200, conteúdo real |
+| `/ajax/tramitacao/proposicao/153972` | página "Bot Verification" |
+| `/softcam/votacao_print_pdf.php?topico=88553` | página "Bot Verification" |
+| SIAPE GOV `/portal-transparencia/api/sis_entidade` | 200 |
+| TCE-SP `/api/json/municipios` | 200 |
