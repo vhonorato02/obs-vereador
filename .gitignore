@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.vercel
+# Generated at build time from the Câmara API.
+data/generated/
+public/dados/
+public/fotos/

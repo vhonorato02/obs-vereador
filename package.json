@@ -1,0 +1,36 @@
+{
+  "name": "acompanhe-seu-vereador",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portal do Observatório Social do Brasil – Pindamonhangaba para acompanhar os vereadores da Câmara Municipal de Pindamonhangaba.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "collect": "tsx scripts/collect.ts",
+    "prebuild": "tsx scripts/collect.ts",
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource-variable/source-sans-3": "5.3.1",
+    "@fontsource-variable/source-serif-4": "5.3.1",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}
