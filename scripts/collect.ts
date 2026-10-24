@@ -246,6 +246,11 @@ async function main() {
   );
   if (proposicoes.length === 0) throw new ColetaError("Nenhuma proposição no escopo: coletor quebrado.", "plausibilidade");
 
+  for (const v of vereadores) {
+    if (!proposicoes.some((p) => p.autoresVereadores.includes(v.slug))) {
+      avisos.push(`${v.nome} não tem nenhuma proposição ligada ao nome. Possível troca de nome parlamentar: revisar src/lib/content/apelidos.ts.`);
+    }
+  }
   const semAno = proposicoes.filter((p) => p.ano === null).length;
   if (semAno > 0) avisos.push(`${semAno} proposições sem número/ano reconhecível no título.`);
 

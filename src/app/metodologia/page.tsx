@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { dataset } from "@/lib/data/load";
 import { dataColeta, n } from "@/lib/format";
+import { TEMAS } from "@/lib/data/temas";
+import { DESTINOS } from "@/lib/data/extrair";
+import { panorama } from "@/lib/data/painel";
+import { percent } from "@/lib/data/analise";
 
 export const metadata: Metadata = {
   title: "Metodologia",
@@ -11,6 +15,9 @@ export const metadata: Metadata = {
 export default function Metodologia() {
   const d = dataset();
   const semVereador = d.proposicoes.filter((p) => p.autoresVereadores.length === 0).length;
+  const pa = panorama();
+  const classificados = pa.pedidos.filter((r) => TEMAS.some((t) => t.termos.test(r.ementa.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase()))).length;
+  const comBairro = pa.bairros.reduce((a, b) => a + b.n, 0);
   return (
     <div className="prosa">
       <h1>Metodologia</h1>
@@ -60,6 +67,42 @@ export default function Metodologia() {
         A API não informa quem propôs cada lei. Quando a ementa traz a frase “de autoria do Vereador…”, o portal liga a norma ao
         perfil do vereador e marca a informação como <em>derivada</em>. Normas com outra redação, ou de autoria do Poder Executivo,
         não aparecem nos perfis.
+      </p>
+
+      <h2 id="derivados">Informações derivadas</h2>
+      <p>
+        Algumas informações não existem como campo na fonte e são calculadas pelo portal a partir do texto oficial. Elas aparecem
+        sempre com a marca de informação derivada, e as regras estão abaixo para quem quiser conferir.
+      </p>
+      <h3 id="temas">Assuntos</h3>
+      <p>
+        Cada pedido é comparado com listas de palavras. Um pedido pode ter mais de um assunto ou nenhum. Nesta coleta,{" "}
+        {percent(classificados, pa.pedidos.length)}% dos {n(pa.pedidos.length)} pedidos receberam pelo menos um assunto.
+      </p>
+      <ul>
+        {TEMAS.map((t) => (
+          <li key={t.slug}>
+            <strong>{t.nome}:</strong> {t.descricao}
+          </li>
+        ))}
+      </ul>
+      <h3 id="bairros">Bairros</h3>
+      <p>
+        O portal procura expressões como “bairro Araretama” ou “distrito de Moreira César” na ementa. A Câmara tem um serviço de
+        bairros na API, mas ele vem vazio. Bairros citados menos de três vezes não são listados, para reduzir erros de digitação.
+        Pedidos que não escrevem a palavra “bairro” ficam de fora. Nesta coleta foram {n(pa.bairros.length)} bairros e {n(comBairro)}{" "}
+        citações.
+      </p>
+      <h3 id="destinos">A quem se pede</h3>
+      <p>
+        Lido no início da ementa (“Ao Executivo Municipal…”, “à Sabesp…”). Indicações são, por definição, dirigidas à Prefeitura.
+        Destinos reconhecidos: {DESTINOS.map((x) => x.nome).join(", ")}.
+      </p>
+      <h3 id="leis">Do projeto à lei</h3>
+      <p>
+        A ementa de muitas leis cita o projeto de origem, como “(Projeto de Lei nº 148/2026, de autoria do Vereador…)”. O portal liga a
+        lei ao projeto com esse número. Leis que não citam o projeto não entram na contagem, então os números são um mínimo, não
+        um total. Nesta coleta, {n(pa.viraram.length)} normas foram ligadas a um projeto.
       </p>
 
       <h2>Limites conhecidos</h2>

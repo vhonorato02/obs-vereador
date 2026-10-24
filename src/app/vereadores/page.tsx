@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { Fonte } from "@/components/Fonte";
-import { Rosto } from "@/components/Rosto";
-import { dataset } from "@/lib/data/load";
+import { Faisca } from "@/components/graficos/Graficos";
+import { porMes, porTema } from "@/lib/data/analise";
+import { panorama } from "@/lib/data/painel";
+import { filtrar } from "@/lib/data/query";
+import { n } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Vereadores",
@@ -9,22 +14,39 @@ export const metadata: Metadata = {
 };
 
 export default function Vereadores() {
-  const d = dataset();
+  const p = panorama();
+  const { d } = p;
   return (
     <>
       <div className="prosa">
         <h1>Vereadores em exercício</h1>
         <p className="soft">
-          Legislatura 2025–2028, em ordem alfabética pelo nome parlamentar. Toque num rosto para ver tudo o que a pessoa
-          apresentou. Fotos: Câmara Municipal de Pindamonhangaba.
+          Legislatura 2025–2028, em ordem alfabética. A faixa mostra as proposições de cada pessoa mês a mês, na escala dela.{" "}
+          <Link href="/comparar">Comparar lado a lado</Link>
         </p>
       </div>
-      <ul className="grade section">
-        {d.vereadores.map((v, i) => (
-          <li key={v.slug}>
-            <Rosto v={v} prioridade={i < 4} />
-          </li>
-        ))}
+      <ul className="cartoes-vereador section">
+        {d.vereadores.map((v) => {
+          const deles = filtrar(d.proposicoes, { autor: v.slug });
+          const tema = porTema(filtrar(deles, { grupo: "pedidos" }), { autor: v.slug, grupo: "pedidos" })[0];
+          return (
+            <li key={v.slug}>
+              <Link href={`/vereadores/${v.slug}`} className="cartao-v">
+                <span className="foto">{v.foto && <Image src={v.foto} alt="" width={136} height={136} />}</span>
+                <span>
+                  <span className="nome">{v.nome}</span>
+                  <span className="meta">
+                    {" "}
+                    {v.partido}
+                    {v.funcao !== "Vereador" ? `, ${v.funcao}` : ""}. {n(deles.length)} proposições
+                    {tema ? `, mais sobre ${tema.nome.toLowerCase()}` : ""}
+                  </span>
+                  <Faisca valores={porMes(deles, p.listaMeses).map((m) => m.total)} />
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
       <Fonte d={d} />
     </>

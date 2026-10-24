@@ -72,3 +72,15 @@ describe("derivações", () => {
     }
   });
 });
+
+describe("apelidos", () => {
+  it("liga um nome antigo ao vereador em exercício", () => {
+    const mapa = mapaVereadores(vereadores);
+    const r = toRegistro(
+      { data: "2025-03-01 10:00:00", titulo: "MOÇÃO N.º 3/2025", ementa: "x", autoria: "Norbertinho; Rogério Ramos", link: "https://x/9" },
+      "Mocoes",
+      mapa,
+    );
+    expect(r.autoresVereadores).toEqual(["norberto-moraes", "rogerio-ramos"]);
+  });
+});

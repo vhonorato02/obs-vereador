@@ -1,4 +1,5 @@
 import { normalizar } from "./derive";
+import { derivados } from "./enriquecer";
 import type { Registro } from "./types";
 
 export interface Filtro {
@@ -7,7 +8,17 @@ export interface Filtro {
   /** 1–12, month of the publication date. */
   mes?: number;
   autor?: string;
+  /** Second councillor who must also sign (co-authorship pair). */
+  coautor?: string;
   q?: string;
+  /** Derived theme slug (see temas.ts). */
+  tema?: string;
+  /** Derived neighbourhood slug (see extrair.ts). */
+  bairro?: string;
+  /** Group of types: pedidos, projetos, homenagens, camara. */
+  grupo?: string;
+  /** Publication month, "YYYY-MM". */
+  pub?: string;
 }
 
 /**
@@ -21,6 +32,14 @@ export function filtrar<T extends Registro>(registros: readonly T[], f: Filtro):
     if (f.ano !== undefined && r.ano !== f.ano) return false;
     if (f.mes !== undefined && Number(r.data.slice(5, 7)) !== f.mes) return false;
     if (f.autor && !r.autoresVereadores.includes(f.autor)) return false;
+    if (f.coautor && !r.autoresVereadores.includes(f.coautor)) return false;
+    if (f.pub && r.data.slice(0, 7) !== f.pub) return false;
+    if (f.tema || f.bairro || f.grupo) {
+      const dv = derivados(r);
+      if (f.tema && !dv.temas.includes(f.tema)) return false;
+      if (f.bairro && !dv.bairrosSlug.includes(f.bairro)) return false;
+      if (f.grupo && dv.grupo !== f.grupo) return false;
+    }
     if (termos.length > 0) {
       const alvo = normalizar(`${r.titulo} ${r.ementa} ${r.autoria}`);
       if (!termos.every((t) => alvo.includes(t))) return false;
@@ -60,7 +79,12 @@ export function hrefLista(base: "/proposicoes" | "/normas", f: Filtro, pagina?: 
   if (f.ano !== undefined) p.set("ano", String(f.ano));
   if (f.mes !== undefined) p.set("mes", String(f.mes));
   if (f.autor) p.set("autor", f.autor);
+  if (f.coautor) p.set("coautor", f.coautor);
   if (f.q) p.set("q", f.q);
+  if (f.tema) p.set("tema", f.tema);
+  if (f.bairro) p.set("bairro", f.bairro);
+  if (f.grupo) p.set("grupo", f.grupo);
+  if (f.pub) p.set("pub", f.pub);
   if (pagina && pagina > 1) p.set("pagina", String(pagina));
   const s = p.toString();
   return s ? `${base}?${s}` : base;
@@ -80,14 +104,24 @@ export function lerFiltro(
   const ano = Number(um("ano"));
   const mes = Number(um("mes"));
   const autor = um("autor");
+  const coautor = um("coautor");
   const q = um("q")?.slice(0, 120).trim();
+  const slug = (k: string) => {
+    const v = um(k);
+    return v && /^[a-z0-9-]{2,80}$/.test(v) ? v : undefined;
+  };
   const pagina = Number(um("pagina"));
   return {
     tipo: tipo && tiposValidos.has(tipo) ? tipo : undefined,
     ano: Number.isInteger(ano) && ano >= 1900 && ano <= 2100 ? ano : undefined,
     mes: Number.isInteger(mes) && mes >= 1 && mes <= 12 ? mes : undefined,
     autor: autor && autoresValidos.has(autor) ? autor : undefined,
+    coautor: coautor && autoresValidos.has(coautor) ? coautor : undefined,
     q: q ? q : undefined,
+    tema: slug("tema"),
+    bairro: slug("bairro"),
+    grupo: slug("grupo"),
+    pub: /^\d{4}-\d{2}$/.test(um("pub") ?? "") ? um("pub") : undefined,
     pagina: Number.isInteger(pagina) && pagina > 0 ? pagina : 1,
   };
 }

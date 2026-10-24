@@ -4,7 +4,10 @@ import { Icon } from "@/components/Icon";
 import { Feed } from "@/components/Item";
 import { Avatar } from "@/components/Rosto";
 import { CURTO } from "@/lib/content/tipos";
+import { GRUPOS } from "@/lib/data/extrair";
+import { tema as temaPorSlug } from "@/lib/data/temas";
 import { buscar } from "@/lib/data/busca";
+import { derivados } from "@/lib/data/enriquecer";
 import { contar, hrefLista, lerFiltro, paginar, type Filtro } from "@/lib/data/query";
 import type { Dataset, Registro } from "@/lib/data/types";
 import { n, nomeMes } from "@/lib/format";
@@ -37,6 +40,7 @@ export function PaginaLista({
   const pag = paginar(resultado, pagina, POR_PAGINA);
   const anos = [...new Set(registros.map((r) => r.ano).filter((a): a is number => a !== null))].sort((a, b) => b - a);
   const autor = d.vereadores.find((v) => v.slug === filtro.autor);
+  const nomeBairro = filtro.bairro ? bairroNome(registros, filtro.bairro) : undefined;
   const semTipo: Filtro = { ...filtro, tipo: undefined };
   const contaTipo = (tipo?: string) =>
     filtro.q ? buscar(registros, filtro.q, { ...semTipo, q: undefined, tipo }).length : contar(registros, { ...semTipo, tipo });
@@ -55,7 +59,7 @@ export function PaginaLista({
         </label>
         <div className="busca-campo">
           <Icon nome="buscar" />
-          <input id="q" name="q" type="search" defaultValue={filtro.q ?? ""} placeholder="Bairro, assunto ou número" enterKeyHint="search" />
+          <input id="q" name="q" type="search" defaultValue={filtro.q ?? ""} placeholder="Bairro, assunto, número" enterKeyHint="search" />
           {filtro.tipo && <input type="hidden" name="tipo" value={filtro.tipo} />}
           {filtro.ano && <input type="hidden" name="ano" value={filtro.ano} />}
           {filtro.autor && <input type="hidden" name="autor" value={filtro.autor} />}
@@ -93,6 +97,31 @@ export function PaginaLista({
         {filtro.mes && (
           <Link className="chip" aria-current="true" href={hrefLista(base, { ...filtro, mes: undefined })} aria-label={`Remover filtro: ${nomeMes(filtro.mes, true)}`}>
             {nomeMes(filtro.mes, true)} ✕
+          </Link>
+        )}
+        {filtro.coautor && (
+          <Link className="chip" aria-current="true" href={hrefLista(base, { ...filtro, coautor: undefined })} aria-label="Remover filtro de coautoria">
+            junto com {d.vereadores.find((v) => v.slug === filtro.coautor)?.nome} ✕
+          </Link>
+        )}
+        {filtro.tema && (
+          <Link className="chip" aria-current="true" href={hrefLista(base, { ...filtro, tema: undefined })} aria-label="Remover filtro de assunto">
+            Assunto: {temaPorSlug(filtro.tema)?.nome ?? filtro.tema} ✕
+          </Link>
+        )}
+        {filtro.bairro && (
+          <Link className="chip" aria-current="true" href={hrefLista(base, { ...filtro, bairro: undefined })} aria-label="Remover filtro de bairro">
+            Bairro: {nomeBairro ?? filtro.bairro} ✕
+          </Link>
+        )}
+        {filtro.grupo && (
+          <Link className="chip" aria-current="true" href={hrefLista(base, { ...filtro, grupo: undefined })} aria-label="Remover filtro de grupo">
+            {GRUPOS.find((g) => g.slug === filtro.grupo)?.nome ?? filtro.grupo} ✕
+          </Link>
+        )}
+        {filtro.pub && (
+          <Link className="chip" aria-current="true" href={hrefLista(base, { ...filtro, pub: undefined })} aria-label="Remover filtro de mês">
+            Publicadas em {nomeMes(Number(filtro.pub.slice(5, 7)), true)} de {filtro.pub.slice(0, 4)} ✕
           </Link>
         )}
       </div>
@@ -136,7 +165,7 @@ export function PaginaLista({
 
       <p className="contagem" aria-live="polite">
         <strong>{n(pag.total)}</strong> {pag.total === 1 ? "resultado" : "resultados"}
-        {(filtro.tipo || filtro.ano || filtro.mes || filtro.autor || filtro.q) && (
+        {Object.values(filtro).some((x) => x !== undefined) && (
           <>
             {" "}
             <Link href={base} className="small">
@@ -178,4 +207,13 @@ export function PaginaLista({
       <Fonte d={d} />
     </>
   );
+}
+
+function bairroNome(registros: readonly Registro[], slug: string): string | undefined {
+  for (const r of registros) {
+    const dv = derivados(r);
+    const i = dv.bairrosSlug.indexOf(slug);
+    if (i >= 0) return dv.bairros[i];
+  }
+  return undefined;
 }

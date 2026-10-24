@@ -1,4 +1,5 @@
 import type { ProposicaoApi, VereadorApi } from "../camara/schema";
+import { APELIDOS } from "../content/apelidos";
 import type { Norma, Registro, Vereador } from "./types";
 
 /** Lowercase, no accents, single spaces. Used for matching and search. */
@@ -38,7 +39,13 @@ export function separarAutores(autoria: string): string[] {
 }
 
 export function mapaVereadores(vereadores: readonly Pick<Vereador, "slug" | "nome">[]): Map<string, string> {
-  return new Map(vereadores.map((v) => [normalizar(v.nome), v.slug]));
+  const m = new Map(vereadores.map((v) => [normalizar(v.nome), v.slug]));
+  const ativos = new Set(vereadores.map((v) => v.slug));
+  for (const [slug, nomes] of Object.entries(APELIDOS)) {
+    if (!ativos.has(slug)) continue;
+    for (const nome of nomes) if (!m.has(normalizar(nome))) m.set(normalizar(nome), slug);
+  }
+  return m;
 }
 
 export function toVereador(v: VereadorApi, foto: string | null): Vereador {

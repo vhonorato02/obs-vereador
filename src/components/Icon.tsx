@@ -63,6 +63,12 @@ const PATHS: Record<string, React.ReactNode> = {
     </>
   ),
   filtro: <path d="M4 5h16l-6 7.5V19l-4 1.5v-8z" />,
+  mapa: (
+    <>
+      <path d="M12 21s-6.5-6.1-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.9 12 21 12 21z" />
+      <circle cx="12" cy="9.8" r="2.4" />
+    </>
+  ),
   info: (
     <>
       <circle cx="12" cy="12" r="8.5" />
