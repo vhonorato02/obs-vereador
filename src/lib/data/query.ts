@@ -4,6 +4,8 @@ import type { Registro } from "./types";
 export interface Filtro {
   tipo?: string;
   ano?: number;
+  /** 1–12, month of the publication date. */
+  mes?: number;
   autor?: string;
   q?: string;
 }
@@ -17,6 +19,7 @@ export function filtrar<T extends Registro>(registros: readonly T[], f: Filtro):
   return registros.filter((r) => {
     if (f.tipo && r.tipo !== f.tipo) return false;
     if (f.ano !== undefined && r.ano !== f.ano) return false;
+    if (f.mes !== undefined && Number(r.data.slice(5, 7)) !== f.mes) return false;
     if (f.autor && !r.autoresVereadores.includes(f.autor)) return false;
     if (termos.length > 0) {
       const alvo = normalizar(`${r.titulo} ${r.ementa} ${r.autoria}`);
@@ -55,6 +58,7 @@ export function hrefLista(base: "/proposicoes" | "/normas", f: Filtro, pagina?: 
   const p = new URLSearchParams();
   if (f.tipo) p.set("tipo", f.tipo);
   if (f.ano !== undefined) p.set("ano", String(f.ano));
+  if (f.mes !== undefined) p.set("mes", String(f.mes));
   if (f.autor) p.set("autor", f.autor);
   if (f.q) p.set("q", f.q);
   if (pagina && pagina > 1) p.set("pagina", String(pagina));
@@ -74,12 +78,14 @@ export function lerFiltro(
   };
   const tipo = um("tipo");
   const ano = Number(um("ano"));
+  const mes = Number(um("mes"));
   const autor = um("autor");
   const q = um("q")?.slice(0, 120).trim();
   const pagina = Number(um("pagina"));
   return {
     tipo: tipo && tiposValidos.has(tipo) ? tipo : undefined,
     ano: Number.isInteger(ano) && ano >= 1900 && ano <= 2100 ? ano : undefined,
+    mes: Number.isInteger(mes) && mes >= 1 && mes <= 12 ? mes : undefined,
     autor: autor && autoresValidos.has(autor) ? autor : undefined,
     q: q ? q : undefined,
     pagina: Number.isInteger(pagina) && pagina > 0 ? pagina : 1,

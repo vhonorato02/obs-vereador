@@ -5,14 +5,18 @@ import type { Dataset } from "@/lib/data/types";
 /** Provenance block shown at the end of every data page. */
 export function Fonte({ d }: { d: Dataset }) {
   return (
-    <aside className="source" aria-label="Fonte dos dados">
+    <aside className="fonte" aria-label="Fonte dos dados">
       <p>
-        <strong>Fonte:</strong> <a href={d.fonte.url}>{d.fonte.nome}</a>. Coletado em {dataColeta(d.execucao.coletadoEm)}.
-        Período: {d.escopo.descricao} (desde {d.escopo.inicio.split("-").reverse().join("/")}).{" "}
-        <Link href="/metodologia">Como contamos</Link> · <Link href="/dados">Baixar os dados</Link>
+        Fonte: <a href={d.fonte.url}>{d.fonte.nome}</a>, coletado em {dataColeta(d.execucao.coletadoEm)}. Período: {d.escopo.descricao}.
+      </p>
+      <p>
+        <Link href="/metodologia">Como contamos</Link>, <Link href="/dados">baixar os dados</Link> ou{" "}
+        <a href="https://github.com/vhonorato02/obs-vereador/issues/new?title=Erro%20nos%20dados">avisar de um erro</a>.
       </p>
       {d.execucao.modo === "amostra" && (
-        <p className="note warning">Atenção: esta versão usa uma amostra de desenvolvimento, não a coleta completa.</p>
+        <p className="nota aviso" style={{ marginTop: "0.75rem" }}>
+          Versão de desenvolvimento com amostra dos dados, não a coleta completa.
+        </p>
       )}
     </aside>
   );

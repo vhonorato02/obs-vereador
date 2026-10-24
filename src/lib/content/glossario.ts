@@ -10,62 +10,62 @@ export interface Verbete {
 export const GLOSSARIO: Verbete[] = [
   {
     contract: "Requerimentos",
-    curto: "Pedido formal",
+    curto: "Pede informação ou providência",
     explicacao:
       "Pedido formal de um ou mais vereadores, em geral de informações ou providências a órgãos públicos ou empresas. É um instrumento rotineiro do mandato.",
   },
   {
     contract: "Indicacoes",
-    curto: "Sugestão à Prefeitura",
+    curto: "Sugestão à Prefeitura, que não é obrigada a atender",
     explicacao:
       "Sugestão do vereador ao Poder Executivo para que faça uma obra ou preste um serviço (por exemplo, tapar um buraco). Não obriga a Prefeitura a atender.",
   },
   {
     contract: "Mocoes",
-    curto: "Manifestação da Câmara",
+    curto: "Aplauso, apoio, pesar ou repúdio",
     explicacao: "Manifestação de aplauso, apoio, pesar, protesto ou repúdio sobre um fato ou uma pessoa.",
   },
   {
     contract: "Emendas",
-    curto: "Proposta de mudança em um projeto",
+    curto: "Muda um projeto que está em andamento",
     explicacao: "Proposta para alterar, acrescentar ou retirar parte de um projeto que já está em tramitação.",
   },
   {
     contract: "Projetos-de-Lei-Ordinaria",
-    curto: "Proposta de lei",
+    curto: "Pode virar lei municipal se aprovado",
     explicacao:
       "Proposta de lei municipal. Pode ser apresentada por vereadores ou pelo Poder Executivo. Só vira lei se for aprovada pela Câmara e sancionada (ou promulgada).",
   },
   {
     contract: "Projetos-de-Lei-Complementar",
-    curto: "Proposta de lei complementar",
+    curto: "Lei com quórum maior, para temas da Lei Orgânica",
     explicacao:
       "Proposta de lei sobre temas que a Lei Orgânica reserva a esse tipo de norma, aprovada com quórum maior que o de uma lei ordinária.",
   },
   {
     contract: "Projetos-de-Resolucao",
-    curto: "Assunto interno da Câmara",
+    curto: "Trata do funcionamento da própria Câmara",
     explicacao: "Proposta que trata de assuntos internos da própria Câmara, como seu funcionamento e organização.",
   },
   {
     contract: "Projetos-de-Decreto-Legislativo",
-    curto: "Decisão da Câmara com efeito externo",
+    curto: "Por exemplo, títulos honoríficos",
     explicacao:
       "Proposta sobre matéria de competência da Câmara com efeito fora dela, como a concessão de títulos honoríficos.",
   },
   {
     contract: "Indicacoes-de-Projetos-de-Lei",
-    curto: "Sugestão de projeto de lei",
+    curto: "Sugere ao Executivo um projeto de iniciativa dele",
     explicacao: "Sugestão ao Poder Executivo para que envie um projeto de lei sobre um tema que é de iniciativa dele.",
   },
   {
     contract: "Vetos",
-    curto: "Recusa do prefeito",
+    curto: "Recusa do prefeito a um projeto aprovado",
     explicacao: "Recusa, total ou parcial, do prefeito a um projeto aprovado pela Câmara. A Câmara pode manter ou derrubar o veto.",
   },
   {
     contract: "Propostas-de-Emenda-a-Lei-Organica",
-    curto: "Mudança na Lei Orgânica",
+    curto: "Altera a Lei Orgânica do município",
     explicacao: "Proposta de alteração da Lei Orgânica, a \"constituição\" do município.",
   },
 ];

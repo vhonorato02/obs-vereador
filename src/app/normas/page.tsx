@@ -22,10 +22,9 @@ export default async function Normas({
       grupo="norma"
       searchParams={await searchParams}
       intro={
-        <p className="muted">
-          Leis ordinárias e complementares, emendas à Lei Orgânica, resoluções e decretos legislativos publicados desde 2025. A
-          Câmara não informa a autoria das normas em campo próprio; quando a ementa cita o autor do projeto, o texto aparece aqui
-          como foi publicado.
+        <p className="soft">
+          Leis, resoluções e decretos legislativos publicados desde 2025. Quando a ementa cita o vereador autor do projeto, a lei
+          também aparece no perfil dele.
         </p>
       }
     />

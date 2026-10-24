@@ -18,7 +18,7 @@ export default function Dados() {
     { href: "/dados/manifesto.json", nome: "Manifesto da coleta (data, fonte, avisos)", qtd: null },
   ];
   return (
-    <>
+    <div className="prosa">
       <h1>Dados abertos</h1>
       <p>
         Os mesmos dados que o portal mostra, como foram coletados em {dataColeta(d.execucao.coletadoEm)}. Reutilize à vontade,
@@ -30,13 +30,13 @@ export default function Dados() {
             <a href={a.href} download>
               {a.nome}
             </a>
-            {a.qtd !== null && <span className="muted"> · {n(a.qtd)} registros</span>}
+            {a.qtd !== null && <span className="soft">, {n(a.qtd)} registros</span>}
           </li>
         ))}
       </ul>
       <h2>Dicionário</h2>
-      <div className="tabela-wrap">
-        <table>
+      <div style={{ overflowX: "auto" }}>
+        <table className="tabela">
           <thead>
             <tr>
               <th scope="col">Campo</th>
@@ -55,9 +55,9 @@ export default function Dados() {
           </tbody>
         </table>
       </div>
-      <p className="muted">
+      <p className="soft">
         Os CSV usam “;” como separador e codificação UTF-8, para abrir direto em planilhas configuradas em português.
       </p>
-    </>
+    </div>
   );
 }

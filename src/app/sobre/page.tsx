@@ -7,9 +7,9 @@ export const metadata: Metadata = {
 
 export default function Sobre() {
   return (
-    <>
+    <div className="prosa">
       <h1>Sobre o portal</h1>
-      <p className="lead">
+      <p className="soft" style={{ fontSize: "var(--step-1)" }}>
         O Acompanhe seu Vereador é mantido pelo Observatório Social do Brasil – Pindamonhangaba para que qualquer pessoa possa ver,
         em poucos cliques, o que os vereadores da cidade apresentaram na Câmara.
       </p>
@@ -31,6 +31,6 @@ export default function Sobre() {
         O código está em <a href="https://github.com/vhonorato02/obs-vereador">github.com/vhonorato02/obs-vereador</a>. Erros nos
         dados podem ser informados <a href="https://github.com/vhonorato02/obs-vereador/issues/new?title=Erro%20nos%20dados">por lá</a>.
       </p>
-    </>
+    </div>
   );
 }

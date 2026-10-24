@@ -29,6 +29,10 @@
 - Sem token fora de produção: usa `fixtures/camara-amostra.json` (amostra real) e mostra aviso.
 - Detalhes da API: `docs/research/camara-api.md`.
 
+## Design (v1.1, 24/10/2026)
+
+App de bolso, não planilha: barra de abas no celular, busca ao vivo que entende "req 2398/2026", "pl 45", nomes e bairros (`/api/busca`, `src/lib/data/busca.ts`), trilho de rostos com transição da foto para o perfil (`ViewTransition` do React), perfil com seletor de ano, barras mês a mês e composição por tipo (cada barra e número é link para a lista). Fontes: Bricolage Grotesque (títulos) e Atkinson Hyperlegible Next (texto). Paleta da marca do OSB em tokens em `src/app/globals.css`; sem cores de partido.
+
 ## Comandos
 
 `npm install` · `npm run collect` · `npm run dev` · `npm test` · `npm run typecheck` · `npm run build`

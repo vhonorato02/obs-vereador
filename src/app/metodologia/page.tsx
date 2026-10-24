@@ -12,7 +12,7 @@ export default function Metodologia() {
   const d = dataset();
   const semVereador = d.proposicoes.filter((p) => p.autoresVereadores.length === 0).length;
   return (
-    <>
+    <div className="prosa">
       <h1>Metodologia</h1>
 
       <h2>De onde vêm os dados</h2>
@@ -88,6 +88,6 @@ export default function Metodologia() {
         Encontrou um erro? <a href="https://github.com/vhonorato02/obs-vereador/issues/new?title=Erro%20nos%20dados">Avise aqui</a>.
         O código do portal é aberto. Veja também os <Link href="/dados">dados para download</Link>.
       </p>
-    </>
+    </div>
   );
 }

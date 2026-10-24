@@ -13,9 +13,9 @@ export default function ComoFunciona() {
   const d = dataset();
   const existe = new Set(d.tipos.map((t) => t.contract));
   return (
-    <>
+    <div className="prosa">
       <h1>Como funciona a Câmara</h1>
-      <p className="lead">
+      <p className="soft" style={{ fontSize: "var(--step-1)" }}>
         A Câmara Municipal de Pindamonhangaba tem {d.vereadores.length} vereadores, eleitos para a legislatura 2025–2028. Eles
         propõem e votam leis municipais, fiscalizam a Prefeitura e fazem pedidos em nome da população.
       </p>
@@ -25,27 +25,23 @@ export default function ComoFunciona() {
       </p>
 
       <h2>Tipos de proposição</h2>
-      <div className="note">
+      <div className="nota">
         <p>
           Explicações simplificadas, escritas pelo Observatório. A definição oficial está no Regimento Interno da Câmara e na Lei
           Orgânica do Município.
         </p>
       </div>
-      <dl>
+      <ul className="verbetes">
         {GLOSSARIO.filter((g) => existe.has(g.contract)).map((g) => (
-          <div key={g.contract} id={g.contract} style={{ marginBottom: "var(--space-6)" }}>
-            <dt>
-              <h3 style={{ marginBottom: "var(--space-1)" }}>{d.tipos.find((t) => t.contract === g.contract)?.titulo}</h3>
-            </dt>
-            <dd style={{ margin: 0 }}>
-              <p>{g.explicacao}</p>
-              <p>
-                <Link href={hrefLista("/proposicoes", { tipo: g.contract })}>Ver as desta legislatura</Link>
-              </p>
-            </dd>
-          </div>
+          <li key={g.contract} id={g.contract}>
+            <h3>{d.tipos.find((t) => t.contract === g.contract)?.titulo}</h3>
+            <p>{g.explicacao}</p>
+            <p>
+              <Link href={hrefLista("/proposicoes", { tipo: g.contract })}>Ver as desta legislatura</Link>
+            </p>
+          </li>
         ))}
-      </dl>
+      </ul>
 
       <h2>O que este portal não mostra (ainda)</h2>
       <ul>
@@ -53,6 +49,6 @@ export default function ComoFunciona() {
         <li>Presença nas sessões. Também não está na API; fica registrada nas atas, em PDF.</li>
         <li>Tramitação (em que etapa está cada projeto). Consulte o documento oficial pelo link de cada item.</li>
       </ul>
-    </>
+    </div>
   );
 }

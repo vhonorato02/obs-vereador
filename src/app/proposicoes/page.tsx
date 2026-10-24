@@ -18,15 +18,14 @@ export default async function Proposicoes({
     <PaginaLista
       d={d}
       base="/proposicoes"
-      titulo="Proposições"
+      titulo="Buscar proposições"
       registros={d.proposicoes}
       grupo="proposicao"
       searchParams={await searchParams}
       intro={
-        <p className="muted">
-          Tudo o que foi apresentado na Câmara nesta legislatura, inclusive pelo Poder Executivo e por comissões. O que é cada
-          tipo: <Link href="/como-funciona">Como funciona</Link>. A busca procura no título, na ementa e na autoria; para bairros,
-          ela encontra o nome escrito no texto (a Câmara não publica uma classificação por bairro).
+        <p className="soft">
+          Procure por palavra, bairro, número (2398/2026) ou tipo (req, pl, moção). Inclui também o que o Poder Executivo e as
+          comissões apresentaram. <Link href="/como-funciona">O que é cada tipo</Link>
         </p>
       }
     />

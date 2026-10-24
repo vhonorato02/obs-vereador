@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ViewTransition } from "react";
 import { Fonte } from "@/components/Fonte";
-import { ListaRegistros } from "@/components/ListaRegistros";
-import { ORDEM_TIPOS, verbete } from "@/lib/content/glossario";
-import { dataset, tipoTitulo } from "@/lib/data/load";
-import { contar, filtrar, hrefLista, ordenar } from "@/lib/data/query";
+import { Feed } from "@/components/Item";
+import { PainelVereador } from "@/components/PainelVereador";
+import { GLOSSARIO } from "@/lib/content/glossario";
+import { CURTO } from "@/lib/content/tipos";
+import { dataset } from "@/lib/data/load";
+import { recortes } from "@/lib/data/perfil";
+import { filtrar, hrefLista, ordenar } from "@/lib/data/query";
 import { n } from "@/lib/format";
 
 export function generateStaticParams() {
@@ -17,9 +22,12 @@ export const dynamicParams = false;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const v = dataset().vereadores.find((x) => x.slug === slug);
-  return v
-    ? { title: v.nome, description: `O que ${v.nome} (${v.partido}) apresentou na Câmara de Pindamonhangaba.` }
-    : {};
+  if (!v) return {};
+  return {
+    title: v.nome,
+    description: `O que ${v.nome} (${v.partido}) apresentou na Câmara de Pindamonhangaba nesta legislatura.`,
+    openGraph: v.foto ? { images: [{ url: v.foto }] } : undefined,
+  };
 }
 
 export default async function PaginaVereador({ params }: { params: Promise<{ slug: string }> }) {
@@ -28,127 +36,70 @@ export default async function PaginaVereador({ params }: { params: Promise<{ slu
   const v = d.vereadores.find((x) => x.slug === slug);
   if (!v) notFound();
 
-  const deles = filtrar(d.proposicoes, { autor: v.slug });
-  const anos = [...new Set(deles.map((r) => r.ano).filter((a): a is number => a !== null))].sort();
-  const tipos = ORDEM_TIPOS.filter((t) => d.tipos.some((x) => x.contract === t));
-  const outros = [...new Set(deles.map((r) => r.tipo))].filter((t) => !tipos.includes(t));
-  const linhas = [...tipos, ...outros];
-  const normasCitadas = d.normas.filter((x) => x.autoriaCitadaNaEmenta.includes(v.slug));
-  const recentes = ordenar(deles).slice(0, 10);
+  const deles = ordenar(filtrar(d.proposicoes, { autor: v.slug }));
+  const normasCitadas = ordenar(d.normas.filter((x) => x.autoriaCitadaNaEmenta.includes(v.slug)));
+  const explicacoes = Object.fromEntries(GLOSSARIO.map((g) => [g.contract, g.curto]));
+  const papel = v.funcao && v.funcao !== "Vereador" ? v.funcao : null;
 
   return (
     <>
-      <p className="muted">
-        <Link href="/#vereadores">Vereadores</Link> / {v.nome}
-      </p>
-      <div className="perfil">
-        <div>
-          {v.foto ? (
-            <img src={v.foto} alt={`Foto oficial de ${v.nome}`} width={240} height={320} />
-          ) : (
-            <span className="foto-vazia" aria-hidden="true" />
-          )}
-          {v.foto && <p className="muted credito">Foto: Câmara Municipal de Pindamonhangaba</p>}
-        </div>
-        <div>
-          <h1>{v.nome}</h1>
-          <dl className="resumo">
-            <dt>Partido</dt>
-            <dd>{v.partido}</dd>
-            <dt>Função</dt>
-            <dd>{v.funcao || "—"}</dd>
-            <dt>Mandato</dt>
-            <dd>Em exercício na legislatura 2025–2028</dd>
-            <dt>Página oficial</dt>
-            <dd>
-              <a href={v.link.replace(/#.*$/, "")}>Perfil no site da Câmara</a>
-            </dd>
-          </dl>
-          {v.funcao === "Presidente" && (
-            <div className="note">
-              <p>
-                Como presidente, conduz as sessões e representa a Câmara. Esse papel institucional é contexto para ler os
-                números abaixo.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <h2>Proposições com autoria ou coautoria</h2>
-      <p className="muted">
-        Cada número é um link para a lista completa. Uma proposição assinada por vários vereadores conta para cada um deles.
-      </p>
-      <div className="tabela-wrap" role="region" aria-label="Proposições por tipo e ano" tabIndex={0}>
-        <table>
-          <caption>Proposições de {v.nome} por tipo e ano do número</caption>
-          <thead>
-            <tr>
-              <th scope="col">Tipo</th>
-              {anos.map((a) => (
-                <th scope="col" className="num" key={a}>
-                  {a}
-                </th>
-              ))}
-              <th scope="col" className="num">
-                Total
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {linhas.map((t) => {
-              const total = contar(d.proposicoes, { autor: v.slug, tipo: t });
-              return (
-                <tr key={t}>
-                  <th scope="row">
-                    {tipoTitulo(d, t)}
-                    {verbete(t) && <div className="muted">{verbete(t)?.curto}</div>}
-                  </th>
-                  {anos.map((a) => {
-                    const c = contar(d.proposicoes, { autor: v.slug, tipo: t, ano: a });
-                    return (
-                      <td className="num" key={a}>
-                        {c > 0 ? <Link href={hrefLista("/proposicoes", { autor: v.slug, tipo: t, ano: a })}>{n(c)}</Link> : "0"}
-                      </td>
-                    );
-                  })}
-                  <td className="num">
-                    {total > 0 ? <Link href={hrefLista("/proposicoes", { autor: v.slug, tipo: t })}>{n(total)}</Link> : "0"}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <h2>Leis e normas que citam {v.nome} como autor do projeto</h2>
-      {normasCitadas.length > 0 ? (
-        <>
-          <p className="muted">
-            Informação derivada: o portal procura no texto da ementa a frase “de autoria do Vereador…”. A Câmara não publica
-            esse campo separado, então normas com outra redação podem ficar de fora.
+      <header className="perfil-hero">
+        <ViewTransition name={`foto-${v.slug}`}>
+          <div className="perfil-foto">
+            {v.foto && (
+              <Image src={v.foto} alt={`Foto oficial de ${v.nome}`} width={480} height={600} priority sizes="(min-width: 46rem) 17rem, 100vw" />
+            )}
+          </div>
+        </ViewTransition>
+        <div className="entrada">
+          <h1 className="perfil-nome">{v.nome}</h1>
+          <div className="etiquetas">
+            <span className="etiqueta">{v.partido}</span>
+            {papel && <span className="etiqueta destaque">{papel}</span>}
+            <span className="etiqueta">Mandato 2025–2028</span>
+          </div>
+          <p className="small soft" style={{ marginTop: "0.85rem" }}>
+            Foto: Câmara Municipal. <a href={v.link.replace(/#.*$/, "")}>Perfil no site oficial</a>
           </p>
-          <ListaRegistros itens={ordenar(normasCitadas)} vereadores={d.vereadores} titulos={(c) => tipoTitulo(d, c)} />
-        </>
-      ) : (
-        <p className="muted">
-          Nenhuma norma desta legislatura cita este vereador no texto da ementa. Isso não significa que não haja; veja a{" "}
-          <Link href="/metodologia#normas">metodologia</Link>.
+        </div>
+      </header>
+
+      {papel === "Presidente" && (
+        <p className="nota section" style={{ marginTop: "1.25rem" }}>
+          Como presidente, conduz as sessões e representa a Câmara. Esse papel é contexto para ler os números abaixo.
         </p>
       )}
 
-      <h2>Mais recentes</h2>
-      {recentes.length > 0 ? (
-        <>
-          <ListaRegistros itens={recentes} vereadores={d.vereadores} titulos={(c) => tipoTitulo(d, c)} />
-          <p>
-            <Link href={hrefLista("/proposicoes", { autor: v.slug })}>Ver todas as {n(deles.length)} proposições</Link>
-          </p>
-        </>
-      ) : (
-        <p className="muted">Nenhuma proposição encontrada no período.</p>
-      )}
+      <PainelVereador slug={v.slug} nome={v.nome} recortes={recortes(d.proposicoes, v.slug)} rotulos={CURTO} explicacoes={explicacoes} />
+
+      <p className="small soft" style={{ marginTop: "0.75rem" }}>
+        Proposições assinadas por vários vereadores contam para cada um. <Link href="/metodologia">Como contamos</Link>
+      </p>
+
+      <section className="section" aria-labelledby="t-recentes">
+        <div className="section-head">
+          <h2 id="t-recentes">Mais recentes</h2>
+          {deles.length > 0 && <Link href={hrefLista("/proposicoes", { autor: v.slug })}>Ver as {n(deles.length)}</Link>}
+        </div>
+        {deles.length > 0 ? (
+          <Feed itens={deles.slice(0, 8)} vereadores={d.vereadores} />
+        ) : (
+          <p className="soft">Nenhuma proposição desta legislatura até a última atualização.</p>
+        )}
+      </section>
+
+      <section className="section" aria-labelledby="t-leis">
+        <h2 id="t-leis">Leis que citam {v.nome} como autor do projeto</h2>
+        <p className="small soft" style={{ margin: "0.5rem 0 1rem" }}>
+          Informação derivada: o portal procura “de autoria do Vereador…” no texto da lei. A Câmara não publica esse campo, então
+          leis com outra redação podem ficar de fora.
+        </p>
+        {normasCitadas.length > 0 ? (
+          <Feed itens={normasCitadas.slice(0, 10)} vereadores={d.vereadores} />
+        ) : (
+          <p className="soft">Nenhuma lei desta legislatura cita este nome na ementa.</p>
+        )}
+      </section>
       <Fonte d={d} />
     </>
   );
