@@ -89,7 +89,7 @@ export function Rede({ nos, pares, inicial = null }: { nos: No[]; pares: Array<{
             <p className="rede-titulo">
               Com quem <strong>{selNome}</strong> mais assina junto
             </p>
-            <ol className="rede-lista">
+            <ul className="rede-lista">
               {doSel.slice(0, 5).map((p) => {
                 const outro = p.a === sel ? p.b : p.a;
                 return (
@@ -100,7 +100,7 @@ export function Rede({ nos, pares, inicial = null }: { nos: No[]; pares: Array<{
                   </li>
                 );
               })}
-            </ol>
+            </ul>
           </>
         ) : (
           <p className="soft small">Toque num rosto ou num nome para ver com quem a pessoa mais assina junto.</p>

@@ -29,9 +29,16 @@
 - Sem token fora de produção: usa `fixtures/camara-amostra.json` (amostra real) e mostra aviso.
 - Detalhes da API: `docs/research/camara-api.md`.
 
-## Design (v1.1, 24/10/2026)
+## Produto (v2, 24/10/2026): experiência com os dados
 
-App de bolso, não planilha: barra de abas no celular, busca ao vivo que entende "req 2398/2026", "pl 45", nomes e bairros (`/api/busca`, `src/lib/data/busca.ts`), trilho de rostos com transição da foto para o perfil (`ViewTransition` do React), perfil com seletor de ano, barras mês a mês e composição por tipo (cada barra e número é link para a lista). Fontes: Bricolage Grotesque (títulos) e Atkinson Hyperlegible Next (texto). Paleta da marca do OSB em tokens em `src/app/globals.css`; sem cores de partido.
+- **Panorama** (`/`): sete histórias com gráficos (pedidos × projetos, ritmo mensal, assuntos, bairros, destinatários, do projeto à lei, rede de coautoria) + cartões dos 11 vereadores com faixa mensal.
+- **Raio-X** (`/vereadores/[slug]`): fatos, seletor de ano, ritmo por tipo, assuntos com a proporção da Câmara como referência, bairros, rede, projetos que viraram lei.
+- **Comparar** (`/comparar?v=a&v=b`): até 3, mesma escala.
+- **Bairros** (`/bairros`, `/bairros/[slug]`): bairros citados ≥ 3 vezes.
+- Informações derivadas (regras em `src/lib/data/temas.ts` e `extrair.ts`) são rotuladas na tela e explicadas em `/metodologia`.
+- Tudo passa pelo filtro único de `src/lib/data/query.ts` (testes garantem número = lista).
+- Paleta dos gráficos validada para daltonismo (claro/escuro) com a skill de dataviz.
+- Crítica e pendências de design: `docs/design/critica.md`.
 
 ## Comandos
 
