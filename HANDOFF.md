@@ -35,7 +35,7 @@
 
 ## Próximos passos possíveis
 
-1. Conferir os números da API com o baseline do Power BI (`docs/research/power-bi.md`) e publicar a reconciliação.
+1. Mostrar no site (metodologia) a reconciliação com o Power BI, que já está em `docs/research/power-bi.md` §9.
 2. Despesas da Câmara, diárias e emendas impositivas (SIAPE GOV / TCE-SP) — exige capturar parâmetros da API do SIAPE (H8).
 3. Histórico 2021–2024 (a API tem décadas de dados).
 4. Presença/votações só se a Câmara publicar na API ou o dono topar enviar as atas.
