@@ -15,10 +15,12 @@
 |---|---|
 | Fase 0 — ambiente (Superpowers, plugins, memória) | feito (ver `docs/environment.md`) |
 | Engenharia reversa do Power BI | feito (`docs/research/power-bi.md`) |
-| Mapeamento do site/API da Câmara | feito em boa parte (`docs/research/camara-site.md`) |
-| Transparência / TCE-SP / fontes complementares | ver relatório |
+| Mapeamento do site/API da Câmara | feito (`docs/research/camara-site.md`) |
+| Transparência (SIAPE GOV), TCE-SP, TSE | feito (seções 3 e 5 do relatório) |
+| Teste de alcance a partir do GitHub Actions | feito (workflow `source-probe`, resultado abaixo) |
 | Benchmark, design, stack, free tiers | feito (`docs/research/benchmark-design.md`, `docs/research/stack-free-tiers.md`) |
-| Relatório da Fase 1 | ver relatório |
+| Relatório da Fase 1 | **entregue** — `docs/research/fase-1-relatorio.md` |
+| Aguardando | respostas do dono às 13 decisões da seção 20 do relatório |
 
 ## Descobertas que mudam a arquitetura (leia antes de tudo)
 
@@ -28,7 +30,9 @@
    Serviços: `vereadores` (só em exercício), `proposicoes_tipos`, `proposicoes&tipo=…&pagina=`, `proposicoes&bairro=…`, `legislacoes_tipos`, `legislacoes`, `pautas`, `bairros`, `publicacoes_tipos`, `publicacoes`, `atendimento`. RSS de notícias em `/jsonweb/web-rss.php` (sem token).
 2. **Votações nominais existem** no fragmento AJAX público de tramitação: `GET /ajax/tramitacao/proposicao/{id}` (timeline + "Votos: Favoráveis (10): nomes…" + PDFs de pauta e votação).
 3. **Proteção anti-robô (LiteSpeed reCAPTCHA)** no site. Política do projeto: **nunca contornar** (sem trocar User-Agent para fugir do desafio, sem resolver captcha). Se aparecer "Bot Verification", o coletor para e alerta. Caminho correto: token da API + pedido formal de liberação à Câmara.
-4. **O site recusa conexões de alguns datacenters** (ex.: Google Cloud, onde roda o Claude Code na nuvem) mas responde da **Vercel região gru1 (AWS São Paulo)** em ~0,35 s. GitHub Actions (Azure EUA) ainda **não foi testado**.
+4. **O site recusa conexões de alguns datacenters** (ex.: Google Cloud, onde roda o Claude Code na nuvem) mas responde da **Vercel região gru1 (AWS São Paulo)** em ~0,35 s.
+   **GitHub Actions (Azure EUA), User-Agent honesto, 24/10/2026:** API `/jsonweb/` ✅; HTML, `/ajax/tramitacao/...` e PDF de votação ❌ (página "Bot Verification"); SIAPE GOV ✅; TCE-SP ✅. Conclusão: tramitação/votos dependem de a Câmara liberar o coletor.
+6. **Transparência:** SIAPE GOV tem API JSON pública com a Câmara como `id_entidade=2` (despesas, diárias, contratos, RH, emendas impositivas); TCE-SP `GET /api/json/despesas/pindamonhangaba/{ano}/{mes}` sem autenticação (dados até ago/2026 em out/2026).
 5. O Power BI atual guarda **só contagens agregadas** (vereador × ano), digitadas à mão. Baseline extraído em `docs/research/power-bi.md`.
 
 ## Limites de segurança que esta sessão respeitou (não tente contornar)
